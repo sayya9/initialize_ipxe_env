@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: gluster-node
+spec:
+  template:
+    metadata:
+      labels:
+        app: gluster-server
+    spec:
+      hostNetwork: true
+      containers:
+        - name: gluster-server
+          image: gluster/gluster-centos:gluster3u8_centos7
+          livenessProbe:
+            exec:
+              command:
+              - gluster
+              - peer
+              - status
+            initialDelaySeconds: 15
+            timeoutSeconds: 1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/glusterfs
+              name: etc-glusterfs
+              readOnly: false
+            - mountPath: /var/lib/glusterd
+              name: var-lib-glusterd
+              readOnly: false
+            - mountPath: /var/log/glusterfs
+              name: var-log-glusterfs
+              readOnly: false
+            - mountPath: /sys/fs/cgroup
+              name: sys-fs-cgroup
+              readOnly: true
+            - mountPath: /dev
+              name: dev
+              readOnly: false
+            - mountPath: /gluster
+              name: gluster
+              readOnly: false
+      volumes:
+        - name: etc-glusterfs
+          hostPath:
+            path: /etc/glusterfs
+        - name: var-lib-glusterd
+          hostPath:
+            path: /var/lib/glusterd
+        - name: var-log-glusterfs
+          hostPath:
+            path: /var/log/glusterfs
+        - name: sys-fs-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: gluster
+          hostPath:
+            path: /gluster
+ 

@@ -1,0 +1,16 @@
+[Unit]
+Description=NFS Server Container
+After=docker.service network.target
+Requires=network.target
+ 
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker pull cpuguy83/nfs-server
+ExecStartPre=/sbin/modprobe nfs
+ExecStartPre=/sbin/modprobe nfsd
+ExecStart=/usr/bin/docker run --rm --net=host --privileged -v /etc/services:/etc/services:ro \
+    -v /var/tftpboot:/exports cpuguy83/nfs-server /exports
+ 
+[Install]
+WantedBy=multi-user.target
