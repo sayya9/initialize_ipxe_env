@@ -41,11 +41,11 @@ if __name__ == '__main__':
 
     elif options.version and options.mac and options.ip and options.type in ['master', 'slave']:
         ConfDir = '/var/www/html/cloud-configs/'
-        pxeTemplate = ConfDir + 'template/pxe-cloud-config.yml'
-        dst = ConfDir + 'pxe-cloud-config.yml'
+        ipxeTemplate = ConfDir + 'template/ipxe-cloud-config.yml'
+        dst = ConfDir + 'ipxe-cloud-config.yml'
 
         if options.version in AllVersion:
-            f = open(pxeTemplate, 'r')
+            f = open(ipxeTemplate, 'r')
             o = open(dst, 'w')
 
             for line in f:
@@ -57,9 +57,8 @@ if __name__ == '__main__':
             print(options.version + ' is not corret version.')
             exit(1)
 
-        pxelinux_cfg = '/var/tftpboot/pxelinux.cfg/'
-        macd = re.sub(':', '-', options.mac.lower())
-        cmd = 'cd ' + pxelinux_cfg + ' && ' + 'cp template 01-' + macd
+        tftpbootDir = '/var/tftpboot'
+        cmd = 'cd ' + tftpbootDir + ' && ' + 'cp coreos.tpl ' + options.mac.lower() + '.ipxe'
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                 stderr = subprocess.PIPE, shell = True)
 
@@ -73,12 +72,12 @@ if __name__ == '__main__':
         o.close()
 
         ConfDir = '/etc/dhcp/'
-        Template = ConfDir + 'template/dhcpd.conf'
+        Template = ConfDir + 'dhcpd.conf.tpl'
         dst = ConfDir + 'dhcpd.conf'
         f = open(Template, 'r')
         o = open(dst, 'w')
         for line in f:
-            o.write(line.replace('ClientMACAddr', options.mac).replace('ClientIPAddr', options.ip))
+            o.write(line.replace('ClientMACAddr', options.mac.lower()).replace('ClientIPAddr', options.ip))
         f.close()
         o.close()
 

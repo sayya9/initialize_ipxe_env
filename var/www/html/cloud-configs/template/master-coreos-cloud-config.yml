@@ -34,7 +34,7 @@ coreos:
         [Network]
         DNS=168.95.1.1
         Address=ClientIPAddr/24
-        Gateway=RouterIP
+        Gateway=192.168.108.1
 
     - name: coreos-installd.service
       command: start
@@ -47,7 +47,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/coreos-installd.sh | bash -'
+        ExecStart=/bin/bash -c 'wget -O - http://192.168.108.90/bin/coreos-installd.sh | bash -'
 
         [Install]
         WantedBy=multi-user.target
@@ -118,7 +118,7 @@ coreos:
 
         [Service]
         Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:v1.4.6
-        ExecStartPre=/usr/bin/ls /.coreos-installd.service
+        ExecStartPre=/usr/bin/ls /.check_coreos-installd.service
         RemainAfterExit=yes
         ExecStart=/opt/bin/kubeadm init --skip-preflight-checks --use-kubernetes-version v1.4.6 \
             --api-advertise-addresses ClientIPAddr --external-etcd-endpoints http://ClientIPAddr:2379
@@ -133,11 +133,11 @@ coreos:
       content: |
         [Unit]
         After=create-kubelet-config.service
-        ConditionPathExists=!/.kubelet-taint-nodes.service
+        ConditionPathExists=!/.check_kubelet-taint-nodes.service
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/opt/bin/kubectl taint nodes --all dedicated-
-        ExecStart=/usr/bin/touch /.kubelet-taint-nodes.service
+        ExecStart=/usr/bin/touch /.check_kubelet-taint-nodes.service
         Restart=always
         RestartSec=5
         [Install]
@@ -152,8 +152,8 @@ coreos:
 
         [Service]
         RemainAfterExit=yes
-        ExecStartPre=/usr/bin/ls /.kubelet-taint-nodes.service
-        ExecStart=/usr/bin/bash -c "wget -N -P /root http://iPXE_Server_IP/soft/kubeadm-anatomy.tgz && \
+        ExecStartPre=/usr/bin/ls /.check_kubelet-taint-nodes.service
+        ExecStart=/usr/bin/bash -c "wget -N -P /root http://192.168.108.90/soft/kubeadm-anatomy.tgz && \
             PATH=$PATH:/opt/bin && tar xzvf /root/kubeadm-anatomy.tgz -C /root && \
             cd /root/kubeadm-anatomy/calico && \
             ETCD_IP=ClientIPAddr envsubst < calico-config.yml | kubectl apply -f - && \

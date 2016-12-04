@@ -2,7 +2,7 @@
 
 coreos:
   units:
-    - name: pxe-installd.service
+    - name: ipxe-installd.service
       command: start
       content: |
         [Unit]
@@ -12,8 +12,8 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStartPre=/bin/bash -c "wget -c -P /root http://iPXE_Server_IP/bin/grandsys-coreos-install && chmod +x /root/grandsys-coreos-install"
-        ExecStart=/root/grandsys-coreos-install -d /dev/sda -c /root/coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V VersionVar
+        ExecStartPre=/bin/bash -c "wget -c -P /root http://192.168.108.90/bin/grandsys-coreos-install && chmod +x /root/grandsys-coreos-install"
+        ExecStart=/root/grandsys-coreos-install -d /dev/sda -c /root/coreos-cloud-config.yml -b http://192.168.108.90/images/coreos/amd64-usr -V VersionVar
 
     - name: download-cloud-config.service
       command: start
@@ -25,7 +25,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/wget http://iPXE_Server_IP/cloud-configs/coreos-cloud-config.yml -O /root/coreos-cloud-config.yml
+        ExecStart=/usr/bin/wget http://192.168.108.90/cloud-configs/coreos-cloud-config.yml -O /root/coreos-cloud-config.yml
 
     - name: ipxe-cleand.service
       command: start
@@ -37,4 +37,4 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/ipxe-cleand.sh | bash -'
+        ExecStart=/bin/bash -c 'wget -O - http://192.168.108.90/bin/ipxe-cleand.sh | bash -'

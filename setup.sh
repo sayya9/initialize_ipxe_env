@@ -16,12 +16,14 @@ apt-get update
 apt-get install -y docker-engine
 
 # Install rkt
-wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
-dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
+if ! dpkg -l rkt > /dev/null 2>&1; then
+    wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
+    dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
+fi
 
 # Fetch rkt's hyperkube image
 rkt --trust-keys-from-https=true fetch quay.io/coreos/hyperkube:v1.4.6_coreos.0
-rkt image export --overwrite quay.io/coreos/hyperkube var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
+rkt image export --overwrite quay.io/coreos/hyperkube /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
 
 # Download necessary files
 wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 https://stable.release.core-os.net/amd64-usr/1185.3.0/coreos_production_image.bin.bz2
@@ -29,10 +31,10 @@ wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 https://stable.release
 wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.10.12/ActivePython-2.7.10.12-linux-x86_64.tar.gz
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
-wget -c -P /var/tftpboot/coreos http://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
-wget -c -P /var/tftpboot/coreos http://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz.sig
-wget -c -P /var/tftpboot/coreos http://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
-wget -c -P /var/tftpboot/coreos http://alpha.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz.sig
+wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
+wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz.sig
+wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
+wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz.sig
 wget -c -P /var/tftpboot http://boot.ipxe.org/undionly.kpxe
 
 docker pull gcr.io/google_containers/hyperkube-amd64:v1.4.6
@@ -66,7 +68,7 @@ Netmask=255.255.255.0
 Range1=${iPXE_Server_IP%.*}.181
 Range2=${iPXE_Server_IP%.*}.190
 Broadcast=${iPXE_Server_IP%.*}.255
-cat > etc/dhcp/template/dhcpd.conf << EOF
+cat > etc/dhcp/dhcpd.conf.tpl << EOF
 ddns-update-style none;
 option domain-name "example.org";
 option domain-name-servers 8.8.8.8;
@@ -80,7 +82,7 @@ subnet $Subnet netmask $Netmask {
   option broadcast-address $Broadcast;
   next-server $iPXE_Server_IP;
   if exists user-class and option user-class = "iPXE" {
-    filename = "MAC_Addr.ipxe";
+    filename = "ClientMACAddr.ipxe";
   } else {
     filename = "undionly.kpxe";
   }
@@ -95,19 +97,16 @@ EOF
 cat > /var/tftpboot/coreos.tpl << EOF
 #!ipxe
 
-set base-url http://iPXE_Server_IP/images/coreos/amd64-usr/1185.3.0
-kernel \${base-url}/coreos_production_pxe.vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe-cloud-config.yml coreos.autologin initrd \${base-url}/coreos_production_pxe_image.cpio.gz boot
+set base-url http://${iPXE_Server_IP}/images/coreos/amd64-usr/1185.3.0
+kernel \${base-url}/coreos_production_pxe.vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe-cloud-config.yml coreos.autologin
+initrd \${base-url}/coreos_production_pxe_image.cpio.gz
+boot
 EOF
 
 docker pull networkboot/dhcpd
 docker pull nginx
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
-
-for i in dhcp nfs-server nginx tftp; do
-    systemctl enable $i
-    systemctl start $i
-done
 
 ethX=$3
 sed -i "s/ethX/$ethX/g" systemd-conf/dhcp.service
@@ -117,11 +116,12 @@ sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/cloud-configs/template/
 sed -i "s/RouterIP/$RouterIP/g" var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/cloud-configs/template/ipxe-cloud-config.yml
 
-cp -f systemd-conf/dhcp.service /lib/systemd/system
-cp -f systemd-conf/nfs-server.service /lib/systemd/system
-cp -f systemd-conf/nginx.service /lib/systemd/system
-cp -f systemd-conf/tftp.service /lib/systemd/system
+cp -f systemd-conf/* /etc/systemd/system
+for i in dhcp nfs-server nginx tftp; do
+    systemctl enable $i
+    systemctl start $i
+done
+
 rsync -avz root/bin/ /root/bin/
 rsync -avz var/www/ /var/www/
-rsync -avz var/tftpboot/ /var/tftpboot/
 rsync -avz etc/dhcp/ /etc/dhcp/
