@@ -34,7 +34,7 @@ coreos:
         [Network]
         DNS=168.95.1.1
         Address=ClientIPAddr/24
-        Gateway=192.168.108.1
+        Gateway=RouterIP
 
     - name: coreos-installd.service
       command: start
@@ -47,7 +47,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://192.168.108.90/bin/coreos-installd.sh | bash -'
+        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/coreos-installd.sh | bash -'
 
         [Install]
         WantedBy=multi-user.target
@@ -153,7 +153,7 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/usr/bin/ls /.check_kubelet-taint-nodes.service
-        ExecStart=/usr/bin/bash -c "wget -N -P /root http://192.168.108.90/soft/kubeadm-anatomy.tgz && \
+        ExecStart=/usr/bin/bash -c "wget -N -P /root http://iPXE_Server_IP/soft/kubeadm-anatomy.tgz && \
             PATH=$PATH:/opt/bin && tar xzvf /root/kubeadm-anatomy.tgz -C /root && \
             cd /root/kubeadm-anatomy/calico && \
             ETCD_IP=ClientIPAddr envsubst < calico-config.yml | kubectl apply -f - && \

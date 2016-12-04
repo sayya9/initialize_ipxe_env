@@ -108,14 +108,6 @@ docker pull nginx
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
-ethX=$3
-sed -i "s/ethX/$ethX/g" systemd-conf/dhcp.service
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/bin/coreos-installd.sh
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/bin/ipxe-cleand.sh
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
-sed -i "s/RouterIP/$RouterIP/g" var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" var/www/html/cloud-configs/template/ipxe-cloud-config.yml
-
 cp -f systemd-conf/* /etc/systemd/system
 for i in dhcp nfs-server nginx tftp; do
     systemctl enable $i
@@ -125,3 +117,12 @@ done
 rsync -avz root/bin/ /root/bin/
 rsync -avz var/www/ /var/www/
 rsync -avz etc/dhcp/ /etc/dhcp/
+
+ethX=$3
+sed -i "s/ethX/$ethX/g" systemd-conf/dhcp.service
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/bin/coreos-installd.sh
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/bin/ipxe-cleand.sh
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
+sed -i "s/RouterIP/$RouterIP/g" /var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/cloud-configs/template/ipxe-cloud-config.yml
+

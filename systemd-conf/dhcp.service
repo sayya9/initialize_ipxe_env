@@ -7,7 +7,7 @@ Requires=docker.service
 TimeoutStartSec=0
 Restart=always
 ExecStartPre=-/usr/bin/docker pull networkboot/dhcpd
-ExecStart=/usr/bin/docker run --rm --name %n --net=host -v /etc/dhcp:/data networkboot/dhcpd eth1
+ExecStart=/usr/bin/docker run --rm --name %n --net=host -v /etc/dhcp:/data networkboot/dhcpd ethX
  
 [Install]
 WantedBy=multi-user.target

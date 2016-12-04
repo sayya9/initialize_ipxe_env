@@ -1,5 +1,5 @@
 mkdir -p /mnt/{nfs,rootfs/boot}
-mount 192.168.108.90:/ /mnt/nfs
+mount iPXE_Server_IP:/ /mnt/nfs
 
 # Bind NIC device to ethX
 mount /dev/sda6 /mnt/rootfs/boot
