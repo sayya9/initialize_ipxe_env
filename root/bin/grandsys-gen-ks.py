@@ -20,7 +20,7 @@ if __name__ == '__main__':
             help = "specify client's MAC address",
             metavar = "mac")
     parser.add_option("-t", "--type", type = "string",
-            help = "specify client's installation type [master/slave]",
+            help = "specify client's installation type [master/node]",
             metavar = "type")
     parser.add_option("-I", "--ip", type = "string",
             help = "specify client's IP address",
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             print(i)
         exit(0)
 
-    elif options.version and options.mac and options.ip and options.type in ['master', 'slave']:
+    elif options.version and options.mac and options.ip and options.type in ['base', 'master', 'node']:
         ConfDir = '/var/www/html/cloud-configs/'
         ipxeTemplate = ConfDir + 'template/ipxe-cloud-config.yml'
         dst = ConfDir + 'ipxe-cloud-config.yml'

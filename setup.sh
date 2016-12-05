@@ -4,7 +4,7 @@ set -e
 
 # Create necessary directories
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/1185.3.0} /etc/dhcp/template
-mkdir -p /var/tftpboot
+mkdir -p /var/tftpboot /root/bin
 
 if ! apt-cache policy | grep -q "apt.dockerproject.org"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
