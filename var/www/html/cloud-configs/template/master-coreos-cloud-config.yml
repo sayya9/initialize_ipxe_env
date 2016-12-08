@@ -43,7 +43,7 @@ coreos:
         Description=coreos-installd
         Requires=network-online.target
         After=network-online.target
-        ConditionPathExists=!.check_coreos-installd.service
+        ConditionPathExists=!/.check_coreos-installd.service
 
         [Service]
         Type=oneshot

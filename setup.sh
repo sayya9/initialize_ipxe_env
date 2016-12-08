@@ -119,10 +119,9 @@ rsync -avz var/www/ /var/www/
 rsync -avz etc/dhcp/ /etc/dhcp/
 
 ethX=$3
+WebDir=/var/www/html
 sed -i "s/ethX/$ethX/g" /etc/systemd/system/dhcp.service
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/bin/coreos-installd.sh
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/bin/ipxe-cleand.sh
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
-sed -i "s/RouterIP/$RouterIP/g" /var/www/html/cloud-configs/template/master-coreos-cloud-config.yml
-sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/www/html/cloud-configs/template/ipxe-cloud-config.yml
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/bin/*
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/*
+sed -i "s/RouterIP/$RouterIP/g" ${WebDir}/cloud-configs/template/*
 

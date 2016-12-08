@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gluster
+  labels:
+    app: gluster
+spec:
+  clusterIP: None
+  ports:
+    # the port that this service should serve on
+  - port: 24007
+    protocol: TCP
+  selector:
+    app: gluster-server
