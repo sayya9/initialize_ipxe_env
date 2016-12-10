@@ -1,0 +1,5 @@
+default local
+timeout 10
+ONTIMEOUT local
+LABEL local
+        LOCALBOOT 0

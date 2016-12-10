@@ -57,8 +57,11 @@ if __name__ == '__main__':
             print(options.version + ' is not corret version.')
             exit(1)
 
-        tftpbootDir = '/var/tftpboot'
-        cmd = 'cd ' + tftpbootDir + ' && ' + 'cp coreos.tpl ' + options.mac.lower() + '.ipxe'
+        pxelinux_cfg = '/var/tftpboot/pxelinux.cfg'
+        macd = '01-' + options.mac.lower().replace(':', '-')
+        Template = pxelinux_cfg + '/by_mac.tpl'
+        dst = pxelinux_cfg + '/' + macd
+        cmd = 'cp ' + Template + dst
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
                 stderr = subprocess.PIPE, shell = True)
 

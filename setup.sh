@@ -3,6 +3,7 @@
 set -e
 
 # Create necessary directories
+mkdir -p /var/www/html/ipxe
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/1185.3.0} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
@@ -22,8 +23,25 @@ if ! dpkg -l rkt > /dev/null 2>&1; then
 fi
 
 # Fetch rkt's hyperkube image
+if ! [ -d /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0 ]; then
+    mkdir -p /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0
+fi
+
 rkt --trust-keys-from-https=true fetch quay.io/coreos/hyperkube:v1.4.6_coreos.0
 rkt image export --overwrite quay.io/coreos/hyperkube /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
+
+# Download coreos_production_iso_image.iso to get vmlinuz, cpio.gz and pxelinux.0
+wget -c -P /root https://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
+mount /root/coreos_production_iso_image.iso /mnt
+cp -f /mnt/coreos/* /var/www/html/images/coreos/amd64-usr/1185.3.0
+cp -f /mnt/isolinux/pxelinux.0 /var/tftpboot
+umount /mnt
+
+# Download ipxe.iso to get ipxe.krn
+wget -c -P /root http://boot.ipxe.org/ipxe.iso
+mount /root/ipxe.iso /mnt
+cp -f /mnt/ipxe.krn /var/tftpboot
+umount /mnt
 
 # Download necessary files
 wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 https://stable.release.core-os.net/amd64-usr/1185.3.0/coreos_production_image.bin.bz2
@@ -31,11 +49,6 @@ wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 https://stable.release
 wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.10.12/ActivePython-2.7.10.12-linux-x86_64.tar.gz
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
-wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
-wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz.sig
-wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
-wget -c -P /var/www/html/images/coreos/amd64-usr/1185.3.0 http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz.sig
-wget -c -P /var/tftpboot http://boot.ipxe.org/undionly.kpxe
 
 docker pull gcr.io/google_containers/hyperkube-amd64:v1.4.6
 docker pull gcr.io/google_containers/kube-discovery-amd64:1.0
@@ -81,11 +94,7 @@ subnet $Subnet netmask $Netmask {
   option routers $RouterIP;
   option broadcast-address $Broadcast;
   next-server $iPXE_Server_IP;
-  if exists user-class and option user-class = "iPXE" {
-    filename = "ClientMACAddr.ipxe";
-  } else {
-    filename = "undionly.kpxe";
-  }
+  filename = "pxelinux.0";
 }
 
 host station {
@@ -94,12 +103,12 @@ host station {
 }
 EOF
 
-cat > /var/tftpboot/coreos.tpl << EOF
+cat > /var/www/html/ipxe/boot.ipxe << EOF
 #!ipxe
 
 set base-url http://${iPXE_Server_IP}/images/coreos/amd64-usr/1185.3.0
-kernel \${base-url}/coreos_production_pxe.vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe-cloud-config.yml coreos.autologin
-initrd \${base-url}/coreos_production_pxe_image.cpio.gz
+kernel \${base-url}/vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe-cloud-config.yml coreos.autologin
+initrd \${base-url}/cpio.gz
 boot
 EOF
 
@@ -109,13 +118,14 @@ docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
 cp -f systemd-conf/* /etc/systemd/system
-for i in dhcp nfs-server nginx tftp; do
+for i in nfs-server nginx tftp; do
     systemctl enable $i
-    systemctl start $i
+    systemctl restart $i
 done
 
 rsync -avz root/bin/ /root/bin/
 rsync -avz var/www/ /var/www/
+rsync -avz var/tftpboot/ /var/tftpboot/
 rsync -avz etc/dhcp/ /etc/dhcp/
 
 ethX=$3
