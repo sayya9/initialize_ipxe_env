@@ -132,5 +132,6 @@ WebDir=/var/www/html
 sed -i "s/ethX/$ethX/g" /etc/systemd/system/dhcp.service
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/bin/*
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/*
+sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/tftpboot/pxelinux.cfg/by_mac.tpl
 sed -i "s/RouterIP/$RouterIP/g" ${WebDir}/cloud-configs/template/*
 
