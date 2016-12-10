@@ -7,11 +7,11 @@ mkdir -p /var/www/html/ipxe
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/1185.3.0} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
+# Add docker repository and install docker
 if ! apt-cache policy | grep -q "apt.dockerproject.org"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
 fi
-
 apt-key update
 apt-get update
 apt-get install -y docker-engine
@@ -26,7 +26,6 @@ fi
 if ! [ -d /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0 ]; then
     mkdir -p /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0
 fi
-
 rkt --trust-keys-from-https=true fetch quay.io/coreos/hyperkube:v1.4.6_coreos.0
 rkt image export --overwrite quay.io/coreos/hyperkube /var/www/html/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
 
