@@ -1,4 +1,4 @@
-timeout 10
+timeout 5
 default iPXE
 LABEL iPXE
 KERNEL ipxe.krn

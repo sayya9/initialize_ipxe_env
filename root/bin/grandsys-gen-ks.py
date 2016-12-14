@@ -7,23 +7,127 @@ import subprocess
 import shutil
 from optparse import OptionParser
 
+def CheckInstallationKind(InstallationKind):
+    if InstallationKind in ['master', 'node', 'base']:
+        return True
+    else:
+        print('Please make sure your installed kind is one of the list.[master/node/base]')
+        exit(1)
+
+def CreateInstllationConf(InstallationKind):
+    ConfDir = '/var/www/html/data'
+    if not os.path.exists(ConfDir):
+        os.makedirs(ConfDir)
+
+    ConfFile = ConfDir + '/' + InstallationKind
+    f = open(ConfFile, 'w')
+    f.write('InstallationKind=' + InstallationKind + '\n')
+    f.write('HostName=' + InstallationKind + '.example.org' + '\n')
+    f.write('CoreOSInstallationVersion=1185.3.0' + '\n')
+    f.write('ServerIPAddress=your ' + InstallationKind + ' IP Address' + '\n')
+    f.write('MACAddress=your ' + InstallationKind + ' MAC Address' + '\n')
+    f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
+    if InstallationKind == 'node':
+        f.write("MasterIPAddress=your Kubernetes' master IP\n")
+    f.close()
+
+def EditInstallationConf(InstallationKind):
+    ConfDir = '/var/www/html/data'
+    ConfFile = ConfDir + '/' + InstallationKind
+    if not os.path.isfile(ConfFile):
+        print('Please create' + ' your ' + InstallationKind + ' template file.')
+    else:
+        cmd = os.environ.get('EDITOR', 'vim') + ' ' + ConfFile
+        subprocess.call(cmd, shell = True)
+
+def GetConfInfo(InstallationKind):
+    ConfDir = '/var/www/html/data'
+    ConfFile = ConfDir + '/' + InstallationKind
+    InstallationInfo = {}
+    f = open(ConfFile)
+    for line in f:
+        m = re.search('(.*)=(.*)', line.replace('\n', ''))
+        InstallationInfo[m.group(1)] = m.group(2)
+    return InstallationInfo
+
+def CreatePXEConf(MACAddress):
+    pxelinux_cfg = '/var/tftpboot/pxelinux.cfg'
+    macd = '01-' + MACAddress.lower().replace(':', '-')
+    Template = pxelinux_cfg + '/by_mac.tpl'
+    dst = pxelinux_cfg + '/' + macd
+    cmd = 'cp ' + Template + ' ' + dst
+    subprocess.call(cmd, shell = True)
+
+def CreateiPXECloudConf(InstallationKind):
+    ConfDir = '/var/www/html/cloud-configs/'
+    ipxeTemplate = ConfDir + 'template/ipxe-cloud-config.yml'
+    dst = ConfDir + 'ipxe-cloud-config.yml'
+    InstallationInfo = GetConfInfo(InstallationKind)
+
+    f = open(ipxeTemplate, 'r')
+    o = open(dst, 'w')
+
+    for line in f:
+        for k, v in InstallationInfo.iteritems():
+            line = line.replace(k, v)
+        o.write(line)
+    f.close()
+    o.close()
+
+def CreateCoreOSCloudConf(InstallationKind):
+    ConfDir = '/var/www/html/cloud-configs/'
+    coreosTemplate = ConfDir + 'template/' + InstallationKind + '-coreos-cloud-config.yml'
+    dst = ConfDir + InstallationKind  + '-coreos-cloud-config.yml'
+    InstallationInfo = GetConfInfo(InstallationKind)
+
+    f = open(coreosTemplate, 'r')
+    o = open(dst, 'w')
+
+    for line in f:
+        for k, v in InstallationInfo.iteritems():
+            line = line.replace(k, v)
+        o.write(line)
+    f.close()
+    o.close()
+
+def CreateK8SConf(InstallationKind):
+    ConfDir = '/var/www/html/k8s/'
+    flist = os.listdir(ConfDir + 'template')
+    InstallationInfo = GetConfInfo(InstallationKind)
+
+    for fname in flist:
+        k8sTemplate = ConfDir + 'template/' + fname
+        dst = ConfDir + fname
+        f = open(k8sTemplate, 'r')
+        o = open(dst, 'w')
+        for line in f:
+            for k, v in InstallationInfo.iteritems():
+                line = line.replace(k, v)
+            o.write(line)
+        f.close()
+        o.close()
+
+def UpdateDHCPServer():
+    cmd = 'systemctl daemon-reload && systemctl restart dhcp'
+    subprocess.call(cmd, shell = True)
+
 if __name__ == '__main__':
-    usage = 'Usage: %prog [-l] [-m MAC_Address] [-t type] [-V version] [-I IP_Address]'
+    usage = "Usage: %prog [-l] [-k kind] [-c create]"
     parser = OptionParser(usage = usage)
-    parser.add_option("-V", "--version", type = "string", default = "1122.3.0",
-            help = "specify OS installed version, 1122.3.0 is default",
-            metavar = "version")
     parser.add_option("-l", "--list", action = "store_true",
             default = False,
             help = "show all OS installed version")
-    parser.add_option("-m", "--mac", type = "string",
-            help = "specify client's MAC address",
-            metavar = "mac")
-    parser.add_option("-t", "--type", type = "string",
-            help = "specify client's installation type [master/node]",
-            metavar = "type")
-    parser.add_option("-I", "--ip", type = "string",
-            help = "specify client's IP address",
+    parser.add_option("-c", "--create", action = "store_true",
+            default = False,
+            help = "create installation configuration")
+    parser.add_option("-e", "--edit", action = "store_true",
+            default = False,
+            help = "edit installation configuration")
+    parser.add_option("-r", "--run", action = "store_true",
+            default = False,
+            help = "create and update all nessenary cloud-configs")
+    parser.add_option("-k", "--kind", type = "string",
+            help = "specify client's installation kind [master/node/base]",
             metavar = "type")
     (options, args) = parser.parse_args()
 
@@ -38,57 +142,16 @@ if __name__ == '__main__':
         for i in AllVersion:
             print(i)
         exit(0)
-
-    elif options.version and options.mac and options.ip and options.type in ['base', 'master', 'node']:
-        ConfDir = '/var/www/html/cloud-configs/'
-        ipxeTemplate = ConfDir + 'template/ipxe-cloud-config.yml'
-        dst = ConfDir + 'ipxe-cloud-config.yml'
-
-        if options.version in AllVersion:
-            f = open(ipxeTemplate, 'r')
-            o = open(dst, 'w')
-
-            for line in f:
-                o.write(line.replace('VersionVar', options.version))
-            f.close()
-            o.close()
-
-        else:
-            print(options.version + ' is not corret version.')
-            exit(1)
-
-        pxelinux_cfg = '/var/tftpboot/pxelinux.cfg'
-        macd = '01-' + options.mac.lower().replace(':', '-')
-        Template = pxelinux_cfg + '/by_mac.tpl'
-        dst = pxelinux_cfg + '/' + macd
-        cmd = 'cp ' + Template + ' ' + dst
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                stderr = subprocess.PIPE, shell = True)
-
-        Template = ConfDir + 'template/' +  options.type + '-coreos-cloud-config.yml'
-        dst = ConfDir + 'coreos-cloud-config.yml'
-        f = open(Template, 'r')
-        o = open(dst, 'w')
-        for line in f:
-            o.write(line.replace('ClientIPAddr', options.ip))
-        f.close()
-        o.close()
-
-        ConfDir = '/etc/dhcp/'
-        Template = ConfDir + 'dhcpd.conf.tpl'
-        dst = ConfDir + 'dhcpd.conf'
-        f = open(Template, 'r')
-        o = open(dst, 'w')
-        for line in f:
-            o.write(line.replace('ClientMACAddr', options.mac.lower()).replace('ClientIPAddr', options.ip))
-        f.close()
-        o.close()
-
-        cmd = 'systemctl restart dhcp'
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                stderr = subprocess.PIPE, shell = True)
-
-    else:
-        print("You miss some crucial options.\n\nExample: " + sys.argv[0] + ' -m 00:0C:29:35:5A:85 -t master -V 1185.3.0 -I 192.168.108.25\n')
-        exit(1)
+    elif CheckInstallationKind(options.kind):
+        if options.create:
+            CreateInstllationConf(options.kind)
+        elif options.edit:
+            EditInstallationConf(options.kind)
+        elif options.run:
+            InstallationInfo = GetConfInfo(options.kind)
+            CreatePXEConf(InstallationInfo['MACAddress'])
+            CreateiPXECloudConf(options.kind)
+            CreateCoreOSCloudConf(options.kind)
+            CreateK8SConf(options.kind)
+            UpdateDHCPServer()
 

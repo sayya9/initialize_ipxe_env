@@ -18,6 +18,7 @@ wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/cni_v1.4.2.ta
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/ctl_v0.22.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-policy-controller_v0.3.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/node_v0.22.0.tar
+wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/glusterfs_3.7.18.tar
 
 # Install python 2.7.10.12 on CoreOS
 cd /opt
@@ -56,6 +57,11 @@ rkt trust --skip-fingerprint-review --insecure-allow-http --root http://iPXE_Ser
 
 # Fetch rkt images
 rkt fetch http://iPXE_Server_IP/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
+
+# Download K8S configurations
+mkdir -p /root/k8s
+wget -N -P /root/k8s http://iPXE_Server_IP/k8s/glusterfs.yml
+wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-svc.yml
 
 # Touch file
 touch /.check_coreos-installd.service

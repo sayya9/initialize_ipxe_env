@@ -16,6 +16,12 @@ apt-key update
 apt-get update
 apt-get install -y docker-engine
 
+# Build docker's glusterfs image
+SetupDIR=$PWD
+cd Dockerfile/glusterfs
+docker build -t glusterfs:3.7.18 .
+cd $SetupDIR
+
 # Install rkt
 if ! dpkg -l rkt > /dev/null 2>&1; then
     wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
@@ -70,6 +76,7 @@ docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
 docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
 docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
+docker save glusterfs:3.7.18 > /var/www/html/images/docker/glusterfs_3.7.18.tar
 
 docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v1.4.6 /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
@@ -80,7 +87,7 @@ Netmask=255.255.255.0
 Range1=${iPXE_Server_IP%.*}.181
 Range2=${iPXE_Server_IP%.*}.190
 Broadcast=${iPXE_Server_IP%.*}.255
-cat > etc/dhcp/dhcpd.conf.tpl << EOF
+cat > $SetupDIR/etc/dhcp/dhcpd.conf.tpl << EOF
 ddns-update-style none;
 option domain-name "example.org";
 option domain-name-servers 8.8.8.8;
@@ -116,16 +123,17 @@ docker pull nginx
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
-cp -f systemd-conf/* /etc/systemd/system
+cp -f $SetupDIR/systemd-conf/* /etc/systemd/system
+systemctl daemon-reload
 for i in nfs-server nginx tftp; do
     systemctl enable $i
     systemctl restart $i
 done
 
-rsync -avz root/bin/ /root/bin/
-rsync -avz var/www/ /var/www/
-rsync -avz var/tftpboot/ /var/tftpboot/
-rsync -avz etc/dhcp/ /etc/dhcp/
+rsync -avz $SetupDIR/root/bin/ /root/bin/
+rsync -avz $SetupDIR/var/www/ /var/www/
+rsync -avz $SetupDIR/var/tftpboot/ /var/tftpboot/
+rsync -avz $SetupDIR/etc/dhcp/ /etc/dhcp/
 
 ethX=$3
 WebDir=/var/www/html

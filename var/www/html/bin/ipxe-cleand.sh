@@ -11,4 +11,4 @@ macd=01-`echo $mac | tr ':' '-'`
 cd /mnt/nfs
 rm $macd
 
-#reboot
+reboot
