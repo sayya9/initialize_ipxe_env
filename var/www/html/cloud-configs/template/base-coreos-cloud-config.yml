@@ -89,7 +89,7 @@ coreos:
 
         [Service]
         EnvironmentFile=/etc/kubelet-rkt
-        Environment=KUBELET_VERSION=v1.4.6_coreos.0
+        Environment=KUBELET_VERSION=v1.5.1_coreos.0
         ExecStart=/usr/lib/coreos/kubelet-wrapper $KUBELET_ARGS
 
         KillMode=mixed
@@ -107,10 +107,10 @@ coreos:
   #      ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
   #      [Service]
-  #      Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:v1.4.6
+  #      Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:v1.5.1
   #      ExecStartPre=/usr/bin/ls /.check_coreos-installd.service
   #      RemainAfterExit=yes
-        #ExecStart=/opt/bin/kubeadm init --skip-preflight-checks --use-kubernetes-version v1.4.6 \
+        #ExecStart=/opt/bin/kubeadm init --skip-preflight-checks --use-kubernetes-version v1.5.1 \
         #      ExecStart=kubeadm join...
         #      Restart=always
         #RestartSec=5

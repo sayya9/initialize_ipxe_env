@@ -9,7 +9,7 @@ mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker /gluster
 
 # Download docker necessary images
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/exechealthz-amd64_1.1.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/hyperkube-amd64_v1.4.6.tar
+wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/hyperkube-amd64_v1.5.1.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-discovery-amd64_1.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kubedns-amd64_1.7.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-dnsmasq-amd64_1.3.tar
@@ -49,14 +49,14 @@ for i in `ls /root/images/docker`; do
 done
 
 # Install kubectl on CoreOS
-docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v1.4.6 /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
+docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v1.5.1 /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
 
 
 # Trust trust gpg keys fetched from http
 rkt trust --skip-fingerprint-review --insecure-allow-http --root http://iPXE_Server_IP/images/rkt/pubkeys.gpg
 
 # Fetch rkt images
-rkt fetch http://iPXE_Server_IP/images/rkt/hyperkube/v1.4.6_coreos.0/hyperkube.aci
+rkt fetch http://iPXE_Server_IP/images/rkt/hyperkube/v1.5.1_coreos.0/hyperkube.aci
 
 # Download K8S configurations
 mkdir -p /root/k8s
