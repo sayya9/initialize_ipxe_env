@@ -1,6 +1,6 @@
 #!/bin/bash
 
-K8S_URL="https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT_HTTPS"
+export K8S_URL="https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT_HTTPS"
 
 if [ -e /build/utils.sh ]; then
   . /build/utils.sh
