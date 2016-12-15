@@ -2,6 +2,8 @@
 
 set -e
 
+K8SVersion=1.5.1
+
 # Create necessary directories
 mkdir -p /var/www/html/ipxe
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/1185.3.0} /etc/dhcp/template
@@ -23,17 +25,17 @@ docker build -t glusterfs:3.7.18 .
 cd $SetupDIR
 
 # Install rkt
-if ! dpkg -l rkt > /dev/null 2>&1; then
-    wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
-    dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
-fi
+#if ! dpkg -l rkt > /dev/null 2>&1; then
+#    wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
+#    dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
+#fi
 
-# Fetch rkt's hyperkube image
-if ! [ -d /var/www/html/images/rkt/hyperkube/v1.5.1_coreos.0 ]; then
-    mkdir -p /var/www/html/images/rkt/hyperkube/v1.5.1_coreos.0
+# Download rkt's hyperkube image
+if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
+    mkdir -p /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0
 fi
-rkt --trust-keys-from-https=true fetch quay.io/coreos/hyperkube:v1.5.1_coreos.0
-rkt image export --overwrite quay.io/coreos/hyperkube /var/www/html/images/rkt/hyperkube/v1.5.1_coreos.0/hyperkube.aci
+wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci
+wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci.asc/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci.asc
 
 # Download coreos_production_iso_image.iso to get vmlinuz, cpio.gz and pxelinux.0
 wget -c -P /root https://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
@@ -55,7 +57,7 @@ wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/rele
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
 wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
 
-docker pull gcr.io/google_containers/hyperkube-amd64:v1.5.1
+docker pull gcr.io/google_containers/hyperkube-amd64:v${K8SVersion}
 docker pull gcr.io/google_containers/kube-discovery-amd64:1.0
 docker pull gcr.io/google_containers/kubedns-amd64:1.7
 docker pull gcr.io/google_containers/exechealthz-amd64:1.1
@@ -66,7 +68,7 @@ docker pull calico/cni:v1.4.2
 docker pull calico/ctl:v0.22.0
 docker pull calico/kube-policy-controller:v0.3.0
 
-docker save gcr.io/google_containers/hyperkube-amd64:v1.5.1 > /var/www/html/images/docker/hyperkube-amd64_v1.5.1.tar
+docker save gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} > /var/www/html/images/docker/hyperkube-amd64_v${K8SVersion}.tar
 docker save gcr.io/google_containers/kube-discovery-amd64:1.0 > /var/www/html/images/docker/kube-discovery-amd64_1.0.tar
 docker save gcr.io/google_containers/kubedns-amd64:1.7 > /var/www/html/images/docker/kubedns-amd64_1.7.tar
 docker save gcr.io/google_containers/exechealthz-amd64:1.1 > /var/www/html/images/docker/exechealthz-amd64_1.1.tar
@@ -78,7 +80,7 @@ docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
 docker save glusterfs:3.7.18 > /var/www/html/images/docker/glusterfs_3.7.18.tar
 
-docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v1.5.1 /bin/sh -c "cp -f /hyperkube /tmp/bin"
+docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
 iPXE_Server_IP=$1
 RouterIP=$2
@@ -138,6 +140,7 @@ rsync -avz $SetupDIR/etc/dhcp/ /etc/dhcp/
 ethX=$3
 WebDir=/var/www/html
 sed -i "s/ethX/$ethX/g" /etc/systemd/system/dhcp.service
+sed -i "s/K8SVersion/$K8SVersion/g" ${WebDir}/bin/*
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/bin/*
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/*
 sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/tftpboot/pxelinux.cfg/by_mac.tpl
