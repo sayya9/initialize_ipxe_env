@@ -123,7 +123,7 @@ coreos:
         [Service]
         EnvironmentFile=/etc/kubelet-docker
         ExecStartPre=-/usr/bin/docker rm kubelet
-        ExecStart=/usr/bin/docker run --rm $DOCKER_RUN_OPTS $KUBELET_ARGS
+        ExecStart=/usr/bin/docker run --rm $DOCKER_RUN_OPTS /kubelet $KUBELET_ARGS
 
         KillMode=mixed
         Restart=always
