@@ -7,7 +7,8 @@ Requires=docker.service
 TimeoutStartSec=0
 Restart=always
 ExecStartPre=-/usr/bin/docker pull pghalliday/tftp
-ExecStart=/usr/bin/docker run --rm --net=host -p 69:69/udp -v /var/tftpboot:/var/tftpboot pghalliday/tftp
+ExecStartPre=-/usr/bin/docker rm -f %n
+ExecStart=/usr/bin/docker run --rm --name %n --net=host -p 69:69/udp -v /var/tftpboot:/var/tftpboot pghalliday/tftp
  
 [Install]
 WantedBy=multi-user.target

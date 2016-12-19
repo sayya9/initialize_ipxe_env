@@ -7,9 +7,10 @@ Requires=network.target
 TimeoutStartSec=0
 Restart=always
 ExecStartPre=-/usr/bin/docker pull cpuguy83/nfs-server
+ExecStartPre=-/usr/bin/docker rm -f %n
 ExecStartPre=/sbin/modprobe nfs
 ExecStartPre=/sbin/modprobe nfsd
-ExecStart=/usr/bin/docker run --rm --net=host --privileged -v /etc/services:/etc/services:ro \
+ExecStart=/usr/bin/docker run --rm --name %n --net=host --privileged -v /etc/services:/etc/services:ro \
     -v /var/tftpboot:/exports cpuguy83/nfs-server /exports
  
 [Install]

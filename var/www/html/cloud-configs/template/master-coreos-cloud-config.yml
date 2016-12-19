@@ -20,6 +20,12 @@ write_files:
       127.0.0.1 localhost
       ServerIPAddress HostName
 
+  - path: /etc/profile.d/bash_completion.sh
+    content: |
+        if [ -e "/var/bash-completion/bash_completion" ]; then
+            . /var/bash-completion/bash_completion
+            . <(kubectl completion bash)
+        fi
 
 coreos:
   etcd2:
@@ -146,7 +152,7 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/usr/bin/bash -c \
-            "/opt/bin/kubectl get node master.example.org -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
+            "/opt/bin/kubectl get node HostName -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
         ExecStart=/opt/bin/kubectl taint nodes --all dedicated-
         Restart=always
         RestartSec=5

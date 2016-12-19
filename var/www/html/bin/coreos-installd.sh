@@ -63,14 +63,10 @@ mkdir -p /root/k8s
 wget -N -P /root/k8s http://iPXE_Server_IP/k8s/glusterfs.yml
 wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-svc.yml
 
-# Install bash completion
-mkdir -p /root/download
+# Download bash completion
+mkdir -p /root/downloads
 wget -N -P /root/downloads http://iPXE_Server_IP/soft/bash-completion.tgz
 tar zxvf /root/downloads/bash-completion.tgz -C /var
-cp -f /usr/share/skel/.bash_profile /root
-cp -f /usr/share/skel/.bashrc /root
-echo ". /var/bash-completion/bash_completion" >> /root/.bashrc
-echo ". <(kubectl completion bash)" >> /root/.bashrc
 
 # Touch file
 touch /.check_coreos-installd.service

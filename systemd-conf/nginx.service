@@ -7,7 +7,8 @@ Requires=docker.service
 TimeoutStartSec=0
 Restart=always
 ExecStartPre=-/usr/bin/docker pull nginx
-ExecStart=/usr/bin/docker run --rm --net=host -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx
+ExecStartPre=-/usr/bin/docker rm -f %n
+ExecStart=/usr/bin/docker run --rm --name %n --net=host -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx
  
 [Install]
 WantedBy=multi-user.target
