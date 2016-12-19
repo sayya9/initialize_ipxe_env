@@ -111,6 +111,7 @@ coreos:
           content: |
             [Service]
             MountFlags=shared
+          command: "restart"
 
     - name: kubelet.service
       command: start
