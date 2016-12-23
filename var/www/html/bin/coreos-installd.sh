@@ -19,6 +19,7 @@ wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/ctl_v0.22.0.t
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-policy-controller_v0.3.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/node_v0.22.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/glusterfs_3.7.18.tar
+wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/gluster-docker_3.7.18.tar
 
 # Install python 2.7.10.12 on CoreOS
 cd /opt
@@ -71,8 +72,8 @@ tar zxvf /root/downloads/bash-completion.tgz -C /var
 # Partition data disk
 mkdir -p /root/parted
 wget -N -P /root/parted http://iPXE_Server_IP/parted/DataDiskParted.sh
-#cd /root/parted
-#cat DataDiskParted.sh | bash
+cd /root/parted
+cat DataDiskParted.sh | bash
 
 # Touch file
 touch /.check_coreos-installd.service

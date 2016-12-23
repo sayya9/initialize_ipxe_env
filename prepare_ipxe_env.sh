@@ -20,16 +20,13 @@ apt-get update
 apt-get install -y docker-engine
 
 # Build docker's glusterfs image
-#SetupDIR=$PWD
-#cd Dockerfile/glusterfs
-#docker build -t glusterfs:3.7.18 .
-#cd $SetupDIR
-
-# Install rkt
-#if ! dpkg -l rkt > /dev/null 2>&1; then
-#    wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
-#    dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
-#fi
+mkdir -p /root/docker_build
+prepare_env_DIR=$PWD
+cd /root/docker_build
+git clone https://github.com/sayya9/gluster-docker
+cd gluster-docker
+docker build -t jaohaohsuan/gluster-docker:3.7.18 .
+cd $prepare_env_DIR
 
 # Download rkt's hyperkube image
 if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
@@ -79,7 +76,7 @@ docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
 docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
 docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
-#docker save glusterfs:3.7.18 > /var/www/html/images/docker/glusterfs_3.7.18.tar
+docker save jaohaohsuan/gluster-docker:3.7.18  > /var/www/html/images/docker/gluster-docker_3.7.18.tar
 
 docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
