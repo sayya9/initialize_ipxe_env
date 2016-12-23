@@ -35,10 +35,13 @@ write_files:
       KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
   - path: /etc/profile.d/bash_completion.sh
     content: |
-        if [ -e "/var/bash-completion/bash_completion" ]; then
-            . /var/bash-completion/bash_completion
-            . <(kubectl completion bash)
-        fi
+      if [ -e "/var/bash-completion/bash_completion" ]; then
+          . /var/bash-completion/bash_completion
+          . <(kubectl completion bash)
+      fi
+  - path: /etc/environment
+    content: |
+      PRIVATEIP=$private_ipv4
 
 coreos:
   units:
@@ -150,6 +153,33 @@ coreos:
         
         [Install]
         WantedBy=multi-user.target
+
+#    - name: hosts.service
+#      command: start
+#      content: |
+#        [Unit]
+#        Description=Hosts Manager
+#        After=etcd2.service
+
+        #        [Service]
+        #EnvironmentFile=/etc/environment
+        #Restart=always
+
+        #ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+
+        #ExecStart=/bin/sh -c 'while true; do etcdctl watch --recursive /hosts; \
+        #  sleep 1;\
+        #  echo "127.0.0.1 localhost" > /etc/hosts; \
+        #  for i in $(etcdctl ls /hosts); do \
+        #    echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
+        #  done >> /etc/hosts; \
+        #done'
+
+        #ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
+        #ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
+
+        #[X-Fleet]
+        #Global=true
 
 users:
   - name: andrew

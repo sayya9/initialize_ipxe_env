@@ -5,7 +5,7 @@ PATH=$PATH:/opt/bin
 set -e
 
 # Create necessary directory
-mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker /gluster
+mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker
 
 # Download docker necessary images
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/exechealthz-amd64_1.1.tar
@@ -18,7 +18,6 @@ wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/cni_v1.4.2.ta
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/ctl_v0.22.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-policy-controller_v0.3.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/node_v0.22.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/glusterfs_3.7.18.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/gluster-docker_3.7.18.tar
 
 # Install python 2.7.10.12 on CoreOS
@@ -59,11 +58,6 @@ docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v
 # Fetch rkt images
 rkt fetch --insecure-options=all http://iPXE_Server_IP/images/rkt/hyperkube/vK8SVersion_coreos.0/hyperkube.aci
 
-# Download K8S configurations
-mkdir -p /root/k8s
-wget -N -P /root/k8s http://iPXE_Server_IP/k8s/glusterfs.yml
-wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-svc.yml
-
 # Download bash completion
 mkdir -p /root/downloads
 wget -N -P /root/downloads http://iPXE_Server_IP/soft/bash-completion.tgz
@@ -74,6 +68,11 @@ mkdir -p /root/parted
 wget -N -P /root/parted http://iPXE_Server_IP/parted/DataDiskParted.sh
 cd /root/parted
 cat DataDiskParted.sh | bash
+
+# Download K8S configurations
+mkdir -p /root/k8s
+wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-svc.yaml
+wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-ds.yaml
 
 # Touch file
 touch /.check_coreos-installd.service

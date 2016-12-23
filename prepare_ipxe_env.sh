@@ -6,7 +6,7 @@ K8SVersion=1.5.1
 CoreOSInstallationVersion=1185.5.0
 
 # Create necessary directories
-mkdir -p /var/www/html/ipxe
+mkdir -p /var/www/html/{ipxe,k8s}
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
@@ -19,12 +19,18 @@ apt-key update
 apt-get update
 apt-get install -y docker-engine
 
-# Build docker's glusterfs image
+# Build docker's gluster image
 mkdir -p /root/docker_build
 prepare_env_DIR=$PWD
-cd /root/docker_build
-git clone https://github.com/sayya9/gluster-docker
-cd gluster-docker
+if [ -d "/root/docker_build/gluster-docker" ]; then
+    cd /root/docker_build/gluster-docker
+    git pull
+else
+    cd /root/docker_build
+    git clone https://github.com/sayya9/gluster-docker
+    cd gluster-docker
+fi
+cp -a k8s/* /var/www/html/k8s
 docker build -t jaohaohsuan/gluster-docker:3.7.18 .
 cd $prepare_env_DIR
 

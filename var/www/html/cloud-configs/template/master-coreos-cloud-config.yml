@@ -40,10 +40,10 @@ write_files:
 
   - path: /etc/profile.d/bash_completion.sh
     content: |
-        if [ -e "/var/bash-completion/bash_completion" ]; then
-            . /var/bash-completion/bash_completion
-            . <(kubectl completion bash)
-        fi
+      if [ -e "/var/bash-completion/bash_completion" ]; then
+          . /var/bash-completion/bash_completion
+          . <(kubectl completion bash)
+      fi
 
 coreos:
   etcd2:
@@ -218,8 +218,8 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/opt/bin/kubectl get ds
-        ExecStart=/usr/bin/bash -c "/opt/bin/kubectl create -f /root/gluster-docker/k8s/gluster-svc.yaml && \
-            /opt/bin/kubectl create -f /root/gluster-docker/k8s/gluster-ds.yaml && \
+        ExecStart=/usr/bin/bash -c "/opt/bin/kubectl create -f /root/k8s/gluster-svc.yaml && \
+            /opt/bin/kubectl create -f /root/k8s/gluster-ds.yaml && \
             touch /.check_gluster-daemonset-installd.service"
         Restart=always
         RestartSec=5
