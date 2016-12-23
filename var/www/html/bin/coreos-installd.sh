@@ -68,5 +68,11 @@ mkdir -p /root/downloads
 wget -N -P /root/downloads http://iPXE_Server_IP/soft/bash-completion.tgz
 tar zxvf /root/downloads/bash-completion.tgz -C /var
 
+# Partition data disk
+mkdir -p /root/parted
+wget -N -P /root/parted http://iPXE_Server_IP/parted/DataDiskParted.sh
+#cd /root/parted
+#cat DataDiskParted.sh | bash
+
 # Touch file
 touch /.check_coreos-installd.service
