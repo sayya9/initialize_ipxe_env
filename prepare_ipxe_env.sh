@@ -110,8 +110,8 @@ subnet $Subnet netmask $Netmask {
 }
 
 host station {
-      hardware ethernet ClientMACAddr;
-      fixed-address ClientIPAddr;
+      hardware ethernet MACAddress;
+      fixed-address ServerIPAddress;
 }
 EOF
 

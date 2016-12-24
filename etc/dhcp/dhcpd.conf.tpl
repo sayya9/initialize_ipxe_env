@@ -14,6 +14,6 @@ subnet 192.168.56.0 netmask 255.255.255.0 {
 }
 
 host station {
-      hardware ethernet ClientMACAddr;
-      fixed-address ClientIPAddr;
+      hardware ethernet MACAddress;
+      fixed-address ServerIPAddress;
 }
