@@ -67,6 +67,7 @@ coreos:
         [Network]
         Address=ServerIPAddress/24
         Gateway=RouterIP
+        DNS=8.8.8.8
 
     - name: coreos-installd.service
       command: start
