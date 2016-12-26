@@ -19,21 +19,6 @@ apt-key update
 apt-get update
 apt-get install -y docker-engine
 
-# Build docker's gluster image
-mkdir -p /root/docker_build
-prepare_env_DIR=$PWD
-if [ -d "/root/docker_build/gluster-docker" ]; then
-    cd /root/docker_build/gluster-docker
-    git pull
-else
-    cd /root/docker_build
-    git clone https://github.com/sayya9/gluster-docker
-    cd gluster-docker
-fi
-cp -a k8s/* /var/www/html/k8s
-docker build -t jaohaohsuan/gluster-docker:3.7.18 .
-cd $prepare_env_DIR
-
 # Download rkt's hyperkube image
 if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
     mkdir -p /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0
@@ -82,7 +67,6 @@ docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
 docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
 docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
-docker save jaohaohsuan/gluster-docker:3.7.18  > /var/www/html/images/docker/gluster-docker_3.7.18.tar
 
 docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 

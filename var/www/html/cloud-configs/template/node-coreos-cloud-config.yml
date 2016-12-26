@@ -39,11 +39,24 @@ write_files:
           . /var/bash-completion/bash_completion
           . <(kubectl completion bash)
       fi
+
   - path: /etc/environment
     content: |
-      PRIVATEIP=$private_ipv4
+      PRIVATEIP=ServerIPAddress
 
 coreos:
+  etcd2:
+    proxy: on
+    listen-client-urls: http://localhost:2379
+    initial-cluster: etcdserver=http://MasterIPAddress:2380
+  fleet:
+    etcd_servers: "http://localhost:2379"
+  units:
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+
   units:
     - name: 00-eth0.network
       runtime: true
@@ -52,7 +65,6 @@ coreos:
         Name=eth0
 
         [Network]
-        DNS=168.95.1.1
         Address=ServerIPAddress/24
         Gateway=RouterIP
 
@@ -150,36 +162,33 @@ coreos:
         ExecStartPost=/usr/bin/bash -c "sleep 10 && mkdir /root/.kube && cp /etc/kubernetes/kubelet.conf /root/.kube/config"
         Restart=always
         RestartSec=5
-        
+
         [Install]
         WantedBy=multi-user.target
 
-#    - name: hosts.service
-#      command: start
-#      content: |
-#        [Unit]
-#        Description=Hosts Manager
-#        After=etcd2.service
+    - name: hosts.service
+      command: start
+      content: |
+        [Unit]
+        Description=Hosts Manager
+        After=etcd2.service
 
-        #        [Service]
-        #EnvironmentFile=/etc/environment
-        #Restart=always
+        [Service]
+        EnvironmentFile=/etc/environment
+        Restart=always
+        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
+        ExecStart=/usr/bin/bash -c 'while true; do \
+            echo "127.0.0.1 localhost" > /etc/hosts; \
+            for i in $(etcdctl ls /hosts); do \
+                echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
+            done >> /etc/hosts; \
+            sleep 5;\
+          done'
+        ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
 
-        #ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
-
-        #ExecStart=/bin/sh -c 'while true; do etcdctl watch --recursive /hosts; \
-        #  sleep 1;\
-        #  echo "127.0.0.1 localhost" > /etc/hosts; \
-        #  for i in $(etcdctl ls /hosts); do \
-        #    echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
-        #  done >> /etc/hosts; \
-        #done'
-
-        #ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
-        #ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
-
-        #[X-Fleet]
-        #Global=true
+        [Install]
+        WantedBy=multi-user.target
 
 users:
   - name: andrew

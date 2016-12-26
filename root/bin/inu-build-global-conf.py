@@ -137,7 +137,21 @@ def CreateDataPartitionScript(HostName, DataPartition):
     o.write('touch /.check_DataDiskParted.sh\n')
     o.close()
 
-def UpdateDHCPServer():
+def UpdateDHCPServer(InstallationInfo):
+    ConfDir = '/etc/dhcp/'
+    dhcpTemplate = ConfDir + 'dhcpd.conf.tpl'
+    dst = ConfDir + 'dhcpd.conf'
+
+    f = open(dhcpTemplate, 'r')
+    o = open(dst, 'w')
+
+    for line in f:
+        for k, v in InstallationInfo.iteritems():
+            line = line.replace(k, v)
+        o.write(line)
+
+    f.close()
+    o.close()
     cmd = 'systemctl daemon-reload && systemctl restart dhcp'
     subprocess.call(cmd, shell = True)
 
@@ -183,5 +197,5 @@ if __name__ == '__main__':
             CreateiPXECloudConf(options.kind, InstallationInfo)
             CreateCoreOSCloudConf(options.kind, InstallationInfo)
             #CreateK8SConf(options.kind, InstallationInfo)
-            UpdateDHCPServer()
+            UpdateDHCPServer(InstallationInfo)
             CreateDataPartitionScript(InstallationInfo['HostName'], InstallationInfo['DataPartition'])

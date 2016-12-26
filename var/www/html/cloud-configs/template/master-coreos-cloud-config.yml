@@ -33,10 +33,6 @@ write_files:
                    -v /opt/cni:/opt/cni \
                    gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
       KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
-  - path: /etc/hosts
-    content: |
-      127.0.0.1 localhost
-      ServerIPAddress HostName
 
   - path: /etc/profile.d/bash_completion.sh
     content: |
@@ -44,6 +40,10 @@ write_files:
           . /var/bash-completion/bash_completion
           . <(kubectl completion bash)
       fi
+
+  - path: /etc/environment
+    content: |
+      PRIVATEIP=ServerIPAddress
 
 coreos:
   etcd2:
@@ -64,7 +64,6 @@ coreos:
         Name=eth0
 
         [Network]
-        DNS=168.95.1.1
         Address=ServerIPAddress/24
         Gateway=RouterIP
 
@@ -165,7 +164,7 @@ coreos:
             --api-advertise-addresses ServerIPAddress --external-etcd-endpoints http://ServerIPAddress:2379
         Restart=always
         RestartSec=5
-        
+
         [Install]
         WantedBy=multi-user.target
 
@@ -208,21 +207,29 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: gluster-daemonset-installd.service
+    - name: hosts.service
       command: start
       content: |
         [Unit]
-        After=kubelet.service
-        ConditionPathExists=!/.check_gluster-daemonset-installd.service
+        Description=Hosts Manager
+        After=etcd2.service
 
         [Service]
-        RemainAfterExit=yes
-        ExecStartPre=/opt/bin/kubectl get ds
-        ExecStart=/usr/bin/bash -c "/opt/bin/kubectl create -f /root/k8s/gluster-svc.yaml && \
-            /opt/bin/kubectl create -f /root/k8s/gluster-ds.yaml && \
-            touch /.check_gluster-daemonset-installd.service"
+        EnvironmentFile=/etc/environment
         Restart=always
-        RestartSec=5
+        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
+        ExecStart=/usr/bin/bash -c 'while true; do \
+            echo "127.0.0.1 localhost" > /etc/hosts; \
+            for i in $(etcdctl ls /hosts); do \
+                echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
+            done >> /etc/hosts; \
+            sleep 5;\
+          done'
+        ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
+
+        [Install]
+        WantedBy=multi-user.target
 
 users:
   - name: andrew
