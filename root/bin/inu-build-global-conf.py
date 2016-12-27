@@ -196,6 +196,4 @@ if __name__ == '__main__':
             CreatePXEConf(InstallationInfo['MACAddress'])
             CreateiPXECloudConf(options.kind, InstallationInfo)
             CreateCoreOSCloudConf(options.kind, InstallationInfo)
-            #CreateK8SConf(options.kind, InstallationInfo)
             UpdateDHCPServer(InstallationInfo)
-            CreateDataPartitionScript(InstallationInfo['HostName'], InstallationInfo['DataPartition'])
