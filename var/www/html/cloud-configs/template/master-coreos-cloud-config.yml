@@ -57,6 +57,8 @@ coreos:
     listen-peer-urls: http://0.0.0.0:2380
 
   units:
+    - name: systemd-networkd.service
+      command: stop
     - name: 00-eth0.network
       runtime: true
       content: |
@@ -67,6 +69,16 @@ coreos:
         Address=ServerIPAddress/24
         Gateway=RouterIP
         DNS=8.8.8.8
+
+    - name: down-interfaces.service
+      command: start
+      content: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/ip link set eth0 down
+        ExecStart=/usr/bin/ip addr flush dev eth0
+    - name: systemd-networkd.service
+      command: restart
 
     - name: coreos-installd.service
       command: start
