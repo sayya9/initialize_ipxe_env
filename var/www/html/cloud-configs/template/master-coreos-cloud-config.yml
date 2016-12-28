@@ -33,17 +33,17 @@ write_files:
                    -v /opt/cni:/opt/cni \
                    gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
       KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
-  - path: /etc/hosts
-    content: |
-      127.0.0.1 localhost
-      ServerIPAddress HostName
 
   - path: /etc/profile.d/bash_completion.sh
     content: |
-        if [ -e "/var/bash-completion/bash_completion" ]; then
-            . /var/bash-completion/bash_completion
-            . <(kubectl completion bash)
-        fi
+      if [ -e "/var/bash-completion/bash_completion" ]; then
+          . /var/bash-completion/bash_completion
+          . <(kubectl completion bash)
+      fi
+
+  - path: /etc/environment
+    content: |
+      PRIVATEIP=ServerIPAddress
 
 coreos:
   etcd2:
@@ -57,6 +57,8 @@ coreos:
     listen-peer-urls: http://0.0.0.0:2380
 
   units:
+    - name: systemd-networkd.service
+      command: stop
     - name: 00-eth0.network
       runtime: true
       content: |
@@ -64,9 +66,19 @@ coreos:
         Name=eth0
 
         [Network]
-        DNS=168.95.1.1
         Address=ServerIPAddress/24
         Gateway=RouterIP
+        DNS=8.8.8.8
+
+    - name: down-interfaces.service
+      command: start
+      content: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/ip link set eth0 down
+        ExecStart=/usr/bin/ip addr flush dev eth0
+    - name: systemd-networkd.service
+      command: restart
 
     - name: coreos-installd.service
       command: start
@@ -165,7 +177,7 @@ coreos:
             --api-advertise-addresses ServerIPAddress --external-etcd-endpoints http://ServerIPAddress:2379
         Restart=always
         RestartSec=5
-        
+
         [Install]
         WantedBy=multi-user.target
 
@@ -208,18 +220,29 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-#    - name: gluster-daemonset-installd.service
-#      command: start
-#      content: |
-#        [Unit]
-#        After=calico-installd.service
-#        ConditionPathExists=/etc/cni/net.d/10-calico.conf
+    - name: hosts.service
+      command: start
+      content: |
+        [Unit]
+        Description=Hosts Manager
+        After=etcd2.service
 
-#        [Service]
-#        RemainAfterExit=yes
-#        ExecStart=/opt/bin/kubectl create -f /root/k8s/glusterfs.yml
-#        Restart=always
-#        RestartSec=5
+        [Service]
+        EnvironmentFile=/etc/environment
+        Restart=always
+        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
+        ExecStart=/usr/bin/bash -c 'while true; do \
+            echo "127.0.0.1 localhost" > /etc/hosts; \
+            for i in $(etcdctl ls /hosts); do \
+                echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
+            done >> /etc/hosts; \
+            sleep 5;\
+          done'
+        ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
+
+        [Install]
+        WantedBy=multi-user.target
 
 users:
   - name: andrew

@@ -6,7 +6,7 @@ K8SVersion=1.5.1
 CoreOSInstallationVersion=1185.5.0
 
 # Create necessary directories
-mkdir -p /var/www/html/ipxe
+mkdir -p /var/www/html/{ipxe,k8s}
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
@@ -18,18 +18,6 @@ fi
 apt-key update
 apt-get update
 apt-get install -y docker-engine
-
-# Build docker's glusterfs image
-#SetupDIR=$PWD
-#cd Dockerfile/glusterfs
-#docker build -t glusterfs:3.7.18 .
-#cd $SetupDIR
-
-# Install rkt
-#if ! dpkg -l rkt > /dev/null 2>&1; then
-#    wget -c -P /tmp https://github.com/coreos/rkt/releases/download/v1.18.0/rkt_1.18.0-1_amd64.deb
-#    dpkg -i /tmp/rkt_1.18.0-1_amd64.deb
-#fi
 
 # Download rkt's hyperkube image
 if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
@@ -79,7 +67,6 @@ docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
 docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
 docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
-#docker save glusterfs:3.7.18 > /var/www/html/images/docker/glusterfs_3.7.18.tar
 
 docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
@@ -107,8 +94,8 @@ subnet $Subnet netmask $Netmask {
 }
 
 host station {
-      hardware ethernet ClientMACAddr;
-      fixed-address ClientIPAddr;
+      hardware ethernet MACAddress;
+      fixed-address ServerIPAddress;
 }
 EOF
 

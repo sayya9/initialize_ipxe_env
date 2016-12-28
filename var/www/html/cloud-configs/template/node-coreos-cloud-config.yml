@@ -14,11 +14,11 @@ write_files:
     content: |
       RKT_OPTS="--volume etc-cni-netd,kind=host,source=/etc/cni/net.d,readOnly=false --volume opt-cni-bin,kind=host,source=/opt/cni/bin,readOnly=false --mount volume=etc-cni-netd,target=/etc/cni/net.d --mount volume=opt-cni-bin,target=/opt/cni/bin"
       KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
- - path: /etc/kubelet-docker
-     owner: root
-     permissions: "0644"
-     content: |
-       DOCKER_RUN_OPTS="--net=host \
+  - path: /etc/kubelet-docker
+    owner: root
+    permissions: "0644"
+    content: |
+      DOCKER_RUN_OPTS="--net=host \
                     --pid=host \
                     --ipc=host \
                     --name=kubelet \
@@ -32,16 +32,34 @@ write_files:
                     -v /etc/cni:/etc/cni \
                     -v /opt/cni:/opt/cni \
                     gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
-       KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
- - path: /etc/profile.d/bash_completion.sh
+      KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
+  - path: /etc/profile.d/bash_completion.sh
     content: |
-        if [ -e "/var/bash-completion/bash_completion" ]; then
-            . /var/bash-completion/bash_completion
-            . <(kubectl completion bash)
-        fi
+      if [ -e "/var/bash-completion/bash_completion" ]; then
+          . /var/bash-completion/bash_completion
+          . <(kubectl completion bash)
+      fi
+
+  - path: /etc/environment
+    content: |
+      PRIVATEIP=ServerIPAddress
 
 coreos:
+  etcd2:
+    proxy: on
+    listen-client-urls: http://localhost:2379
+    initial-cluster: etcdserver=http://MasterIPAddress:2380
+  fleet:
+    etcd_servers: "http://localhost:2379"
   units:
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+
+  units:
+    - name: systemd-networkd.service
+      command: stop
     - name: 00-eth0.network
       runtime: true
       content: |
@@ -49,9 +67,19 @@ coreos:
         Name=eth0
 
         [Network]
-        DNS=168.95.1.1
         Address=ServerIPAddress/24
         Gateway=RouterIP
+        DNS=8.8.8.8
+
+    - name: down-interfaces.service
+      command: start
+      content: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/ip link set eth0 down
+        ExecStart=/usr/bin/ip addr flush dev eth0
+    - name: systemd-networkd.service
+      command: restart
 
     - name: coreos-installd.service
       command: start
@@ -147,7 +175,31 @@ coreos:
         ExecStartPost=/usr/bin/bash -c "sleep 10 && mkdir /root/.kube && cp /etc/kubernetes/kubelet.conf /root/.kube/config"
         Restart=always
         RestartSec=5
-        
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: hosts.service
+      command: start
+      content: |
+        [Unit]
+        Description=Hosts Manager
+        After=etcd2.service
+
+        [Service]
+        EnvironmentFile=/etc/environment
+        Restart=always
+        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
+        ExecStart=/usr/bin/bash -c 'while true; do \
+            echo "127.0.0.1 localhost" > /etc/hosts; \
+            for i in $(etcdctl ls /hosts); do \
+                echo $(etcdctl get $i) $(echo $i | cut -c 8-); \
+            done >> /etc/hosts; \
+            sleep 5;\
+          done'
+        ExecStopPost=/usr/bin/etcdctl rm /hosts/%H
+
         [Install]
         WantedBy=multi-user.target
 

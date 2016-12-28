@@ -5,7 +5,7 @@ PATH=$PATH:/opt/bin
 set -e
 
 # Create necessary directory
-mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker /gluster
+mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker
 
 # Download docker necessary images
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/exechealthz-amd64_1.1.tar
@@ -18,7 +18,6 @@ wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/cni_v1.4.2.ta
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/ctl_v0.22.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-policy-controller_v0.3.0.tar
 wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/node_v0.22.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/glusterfs_3.7.18.tar
 
 # Install python 2.7.10.12 on CoreOS
 cd /opt
@@ -50,18 +49,6 @@ done
 
 # Install kubectl on CoreOS
 docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:vK8SVersion /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
-
-
-# Trust trust gpg keys fetched from http
-#rkt trust --skip-fingerprint-review --insecure-allow-http --root http://iPXE_Server_IP/images/rkt/pubkeys.gpg
-
-# Fetch rkt images
-rkt fetch --insecure-options=all http://iPXE_Server_IP/images/rkt/hyperkube/vK8SVersion_coreos.0/hyperkube.aci
-
-# Download K8S configurations
-mkdir -p /root/k8s
-wget -N -P /root/k8s http://iPXE_Server_IP/k8s/glusterfs.yml
-wget -N -P /root/k8s http://iPXE_Server_IP/k8s/gluster-svc.yml
 
 # Download bash completion
 mkdir -p /root/downloads
