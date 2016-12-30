@@ -56,6 +56,11 @@ docker pull calico/node:v0.22.0
 docker pull calico/cni:v1.4.2
 docker pull calico/ctl:v0.22.0
 docker pull calico/kube-policy-controller:v0.3.0
+docker pull quay.io/coreos/pod-checkpointer:b4f0353cc12d95737628b8815625cc8e5cedb6fc
+docker pull quay.io/coreos/hyperkube:v${K8SVersion}_coreos.0
+docker pull gcr.io/google_containers/dnsmasq-metrics-amd64:1.0
+docker pull gcr.io/google_containers/kubedns-amd64:1.9
+docker pull gcr.io/google_containers/kube-dnsmasq-amd64:1.4
 
 docker save gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} > /var/www/html/images/docker/hyperkube-amd64_v${K8SVersion}.tar
 docker save gcr.io/google_containers/kube-discovery-amd64:1.0 > /var/www/html/images/docker/kube-discovery-amd64_1.0.tar
@@ -67,6 +72,14 @@ docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
 docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
 docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
 docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
+docker save quay.io/coreos/pod-checkpointer:b4f0353cc12d95737628b8815625cc8e5cedb6fc > /var/www/html/images/docker/pod-checkpointer.tar
+docker save quay.io/coreos/hyperkube:v${K8SVersion}_coreos.0 > /var/www/html/images/docker/hyperkube_v${K8SVersion}_coreos.0.tar
+docker save gcr.io/google_containers/dnsmasq-metrics-amd64:1.0 > /var/www/html/images/docker/dnsmasq-metrics-amd64_1.0.tar
+docker save gcr.io/google_containers/kubedns-amd64:1.9 > /var/www/html/images/docker/kubedns-amd64_1.9.tar
+docker save gcr.io/google_containers/kube-dnsmasq-amd64:1.4 > /var/www/html/images/docker/kube-dnsmasq-amd64_1.4.tar
+
+# save all image tar to list
+ls -1 /var/www/html/images/docker/ > /var/www/html/images/docker-list
 
 docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
