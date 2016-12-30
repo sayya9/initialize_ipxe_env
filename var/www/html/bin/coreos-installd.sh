@@ -37,11 +37,11 @@ wget -N -P /opt http://iPXE_Server_IP/soft/cni-amd64-07a8a28637e97b22eb8dfe710ee
 tar xzvf /opt/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz -C /opt/cni
 
 # Install bootkube
-wget -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube
-chmod +x /opt/bin/bootkube
+#wget -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube
+#chmod +x /opt/bin/bootkube
 
 # Fetch bootkube asset
-wget -N -P /root http://iPXE_Server_IP/k8s/asset.tar
+#wget -N -P /root http://iPXE_Server_IP/k8s/asset.tar
 
 # Install kubectl on CoreOS
 docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:vK8SVersion /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
