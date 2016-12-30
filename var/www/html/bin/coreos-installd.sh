@@ -18,10 +18,10 @@ cd /opt
 wget http://iPXE_Server_IP/soft/ActivePython-2.7.10.12-linux-x86_64.tar.gz
 tar xzvf ActivePython-2.7.10.12-linux-x86_64.tar.gz
 cd ActivePython-2.7.10.12-linux-x86_64 && ./install.sh -I /opt/python-2.7.10.12/
-ln -s /opt/python-2.7.10.12/bin/easy_install /opt/bin/easy_install
-ln -s /opt/python-2.7.10.12/bin/pip /opt/bin/pip
-ln -s /opt/python-2.7.10.12/bin/python /opt/bin/python
-ln -s /opt/python-2.7.10.12/bin/virtualenv /opt/bin/virtualenv
+ln -sf /opt/python-2.7.10.12/bin/easy_install /opt/bin/easy_install
+ln -sf /opt/python-2.7.10.12/bin/pip /opt/bin/pip
+ln -sf /opt/python-2.7.10.12/bin/python /opt/bin/python
+ln -sf /opt/python-2.7.10.12/bin/virtualenv /opt/bin/virtualenv
 rm -rf /opt/ActivePython-2.7.10.12-linux-x86_64.tar.gz /opt/ActivePython-2.7.10.12-linux-x86_64/
 
 # Install tmux on CoreOS
