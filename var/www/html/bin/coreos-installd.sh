@@ -8,26 +8,20 @@ set -e
 mkdir -p /opt/bin /opt/cni/bin /etc/cni/net.d /root/images/docker
 
 # Download docker necessary images
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/exechealthz-amd64_1.1.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/hyperkube-amd64_vK8SVersion.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-discovery-amd64_1.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kubedns-amd64_1.7.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-dnsmasq-amd64_1.3.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/pause-amd64_3.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/cni_v1.4.2.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/ctl_v0.22.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/kube-policy-controller_v0.3.0.tar
-wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/node_v0.22.0.tar
+for TAR in `curl http://iPXE_Server_IP/images/docker-list`; do
+  wget -N -P /root/images/docker http://iPXE_Server_IP/images/docker/$TAR
+  docker load -i /root/images/docker/$TAR
+done
 
 # Install python 2.7.10.12 on CoreOS
 cd /opt
 wget http://iPXE_Server_IP/soft/ActivePython-2.7.10.12-linux-x86_64.tar.gz
 tar xzvf ActivePython-2.7.10.12-linux-x86_64.tar.gz
 cd ActivePython-2.7.10.12-linux-x86_64 && ./install.sh -I /opt/python-2.7.10.12/
-ln -s /opt/python-2.7.10.12/bin/easy_install /opt/bin/easy_install
-ln -s /opt/python-2.7.10.12/bin/pip /opt/bin/pip
-ln -s /opt/python-2.7.10.12/bin/python /opt/bin/python
-ln -s /opt/python-2.7.10.12/bin/virtualenv /opt/bin/virtualenv
+ln -sf /opt/python-2.7.10.12/bin/easy_install /opt/bin/easy_install
+ln -sf /opt/python-2.7.10.12/bin/pip /opt/bin/pip
+ln -sf /opt/python-2.7.10.12/bin/python /opt/bin/python
+ln -sf /opt/python-2.7.10.12/bin/virtualenv /opt/bin/virtualenv
 rm -rf /opt/ActivePython-2.7.10.12-linux-x86_64.tar.gz /opt/ActivePython-2.7.10.12-linux-x86_64/
 
 # Install tmux on CoreOS
@@ -42,10 +36,12 @@ chmod +x /opt/bin/kubeadm
 wget -N -P /opt http://iPXE_Server_IP/soft/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
 tar xzvf /opt/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz -C /opt/cni
 
-# Import docker images
-for i in `ls /root/images/docker`; do
-    docker load -i /root/images/docker/$i
-done
+# Install bootkube
+#wget -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube
+#chmod +x /opt/bin/bootkube
+
+# Fetch bootkube asset
+#wget -N -P /root http://iPXE_Server_IP/k8s/asset.tar
 
 # Install kubectl on CoreOS
 docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:vK8SVersion /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
