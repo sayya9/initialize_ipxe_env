@@ -19,20 +19,30 @@ write_files:
     permissions: "0644"
     content: |
       DOCKER_RUN_OPTS="--net=host \
-                    --pid=host \
-                    --ipc=host \
-                    --name=kubelet \
-                    --privileged \
-                    -v /run:/run \
-                    -v /var/run:/var/run \
-                    -v /var/lib/docker:/var/lib/docker \
-                    -v /var/lib/kubelet:/var/lib/kubelet:shared \
-                    -v /dev:/host/dev \
-                    -v /etc/kubernetes:/etc/kubernetes \
-                    -v /etc/cni:/etc/cni \
-                    -v /opt/cni:/opt/cni \
-                    gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
-      KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
+                   --pid=host \
+                   --ipc=host \
+                   --name=kubelet \
+                   --privileged \
+                   -v /run:/run \
+                   -v /var/run:/var/run \
+                   -v /var/lib/docker:/var/lib/docker \
+                   -v /var/lib/kubelet:/var/lib/kubelet:shared \
+                   -v /dev:/host/dev \
+                   -v /etc/kubernetes:/etc/kubernetes \
+                   -v /etc/cni:/etc/cni \
+                   -v /opt/cni:/opt/cni \
+                   gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
+      KUBELET_ARGS="--network-plugin=cni \
+                    --pod-manifest-path=/etc/kubernetes/manifests \
+                    --lock-file=/var/run/lock/kubelet.lock \
+                    --exit-on-lock-contention \
+                    --cluster-dns=10.3.0.10 \
+                    --cluster-domain=cluster.local \
+                    --kubeconfig=/etc/kubernetes/kubeconfig \
+                    --node-labels=master=true \
+                    --require-kubeconfig \
+                    --allow-privileged"
+
   - path: /etc/profile.d/bash_completion.sh
     content: |
       if [ -e "/var/bash-completion/bash_completion" ]; then
@@ -141,41 +151,27 @@ coreos:
             MountFlags=shared
       command: "restart"
 
-    - name: kubelet.service
-      command: start
+    - name: kubelet.path
+      enable: true
       content: |
         [Unit]
-        Requires=docker.service
-        After=docker.service
-
-        [Service]
-        EnvironmentFile=/etc/kubelet-docker
-        ExecStartPre=-/usr/bin/docker rm kubelet
-        ExecStart=/usr/bin/docker run --rm $DOCKER_RUN_OPTS /kubelet $KUBELET_ARGS
-
-        KillMode=mixed
-        Restart=always
-        RestartSec=10
-
+        Description=Watch for kubeconfig
+        [Path]
+        PathExists=/etc/kubernetes/kubeconfig
         [Install]
         WantedBy=multi-user.target
 
-    - name: join-k8s.service
-      command: start
+    - name: kubelet.service
       content: |
-        [Unit]
-        Description=node join k8s
-        ConditionPathExists=!/etc/kubernetes/kubelet.conf
-
         [Service]
-        Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:vK8SVersion
-        ExecStartPre=/usr/bin/ls /.check_coreos-installd.service
-        RemainAfterExit=yes
-        ExecStart=/opt/bin/kubeadm join --token=KubernetesToken MasterIPAddress --skip-preflight-checks
-        ExecStartPost=/usr/bin/bash -c "sleep 10 && mkdir /root/.kube && cp /etc/kubernetes/kubelet.conf /root/.kube/config"
+        EnvironmentFile=/etc/kubelet-docker
+        ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
+        ExecStartPre=/bin/mkdir -p /srv/kubernetes/manifests
+        ExecStartPre=/bin/mkdir -p /etc/kubernetes/checkpoint-secrets
+        ExecStartPre=-/usr/bin/docker rm kubelet
+        ExecStart=/usr/bin/docker run --rm $DOCKER_RUN_OPTS /kubelet $KUBELET_ARGS
         Restart=always
-        RestartSec=5
-
+        RestartSec=10
         [Install]
         WantedBy=multi-user.target
 
@@ -206,6 +202,11 @@ coreos:
 users:
   - name: andrew
     passwd: $1$cxDrcmk0$B/WI7rG8E4THMzpkyPe.q.
+    groups:
+      - sudo
+      - docker
+  - name: henry
+    passwd: $1$Y36ZEmVp$bEqFWn.Sbp6Y.mzmAT32P/
     groups:
       - sudo
       - docker

@@ -137,6 +137,11 @@ def CreateDataPartitionScript(HostName, DataPartition):
     o.write('touch /.check_DataDiskParted.sh\n')
     o.close()
 
+def RenderBootKubeConf(ServerIPAddress):
+    cmd = 'docker run --rm -v /var/www/html/k8s:/out -e BOOTKUBE_ETCD_SERVER=https://' + ServerIPAddress + ':443 ' + '-e BOOTKUBE_ETCD_SERVERS=http://' + ServerIPAddress + ':2379 ' + \
+          'jaohaohsuan/bootkube-render:latest /tar_asset.sh'
+    subprocess.call(cmd, shell = True)
+
 def UpdateDHCPServer(InstallationInfo):
     ConfDir = '/etc/dhcp/'
     dhcpTemplate = ConfDir + 'dhcpd.conf.tpl'
@@ -197,3 +202,5 @@ if __name__ == '__main__':
             CreateiPXECloudConf(options.kind, InstallationInfo)
             CreateCoreOSCloudConf(options.kind, InstallationInfo)
             UpdateDHCPServer(InstallationInfo)
+            if options.kind == 'master':
+                RenderBootKubeConf(InstallationInfo['ServerIPAddress'])
