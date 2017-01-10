@@ -14,8 +14,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStartPre=/bin/bash -c "wget -c -P /root http://iPXE_Server_IP/bin/grandsys-coreos-install && chmod +x /root/grandsys-coreos-install"
-        ExecStart=/root/grandsys-coreos-install -d /dev/sda -c /root/InstallationKind-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion
+        ExecStart=/usr/bin/coreos-install -d /dev/sda -c /root/InstallationKind-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion
 
     - name: download-cloud-config.service
       command: start
