@@ -74,7 +74,7 @@ fi
 
 # pull ipxe environment service images
 docker pull networkboot/dhcpd
-docker pull nginx
+docker pull nginx:stable-alpine
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
