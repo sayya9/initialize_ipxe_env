@@ -132,14 +132,6 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: docker.service
-      drop-ins:
-        - name: "shared-mount-flags.conf"
-          content: |
-            [Service]
-            MountFlags=shared
-      command: "restart"
-
     - name: kubelet.service
       command: start
       content: |
