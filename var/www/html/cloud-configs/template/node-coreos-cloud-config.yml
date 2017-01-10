@@ -13,7 +13,7 @@ write_files:
     permissions: "0644"
     content: |
       RKT_RUN_ARGS="--volume etc-cni-netd,kind=host,source=/etc/cni/net.d,readOnly=false --volume opt-cni-bin,kind=host,source=/opt/cni/bin,readOnly=false --mount volume=etc-cni-netd,target=/etc/cni/net.d --mount volume=opt-cni-bin,target=/opt/cni/bin"
-      KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
+      KUBELET_ARGS="--network-plugin=cni --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage' --hostname-override=ServerIPAddress"
 
   - path: /etc/kubelet-docker
     owner: root
@@ -68,7 +68,7 @@ coreos:
         [Network]
         Address=ServerIPAddress/24
         Gateway=RouterIP
-        DNS=8.8.8.8
+        DNS=RouterIP
 
     - name: down-interfaces.service
       command: start
