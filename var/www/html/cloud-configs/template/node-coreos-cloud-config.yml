@@ -4,10 +4,19 @@ hostname: HostName
 
 # include one or more SSH public keys
 ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCxX2im4hTlGi2+oUaqzmguRmXOoHqFofvSILYegBHu2cmu3cHMFyQX9mBa2qVJ/+d6F/lfJ1XX4OYxPwtEe4YHgzsUzvUgZod3x2hoim2uOGaf0BoRdTAnQxY6Tum9fylI+MzMmDLFR1d2G3AzGyDPc9baZJWVCElNLbeq47sXITiVl5j52u+WHPRnEy/PMIX5amLPWTBYPds7qF8zlUJaM6r9xedFyyv2t5J/6Zn755f0S9rEVw5ga8H71qj4d9MgaHF5DjLS46ml5lL7vmNpk2wdIL54ncZ5a/I4JcFsnhycrBIXVoaq+aubstyByG6S8qa4OqSPOIaHvfaIK9fNcffVoTzjGNyZo5yy2qEemSPQ0emSp0CiuGra7E4cPnbhFdfEJHXOz7+TJ5CwY0QvR6wEOr0t5PxzHZsI4aoKvrrEeoeua9guZmRU41SujCvi4sDSXRVfxyq6yLhk9kVS4/zbXIsANN9p9CkeXUsZiAqUv6d+rRXY2kuh0S5aM9a1GoRHbfYxeNIXeko3hkJnl9CFtd2qnio0L+vLF55wvuvYgoxmW/YtNfIsI8DO43+Ydez7SIGfauuErBqPhAUYL2U5S4i8p/Oqnzuxm755R5/yXO3Wxko27LC09YhnZGk8AswsIv3rdgYiNscDQMZorya5WH4lnJjkJnmmOh44mw== jaohaohsuan@gmail.com
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCmUIsevaUMci2lwlj4TYbnH/jS28VBmeJT5KxpT4ku9AZFVnNEfX1C0ZdNF7wW1V1k+Cj3Vzc4KZeBja5imsY/ynmkxsDmrhO5Fga6AtWqottz9HbQNvesjfLfx5/QoGaRycH2r5BZhbCTuRGpiKXKvAh9EmyFFdxb2di+6J4QbwGruF3zWTTijcq70Ip+Dsdfottq2hkNIFIzdgxFm0eXVMOnFEek5AEiCYKYF9VQHjT0NGFqaT4LQPXE3q3Ibox8FgG2T72DlK3YZaxLEKsy2QMpgEFu877cj/oFwLi8V3megOfEjKItuI7UrCml2jmXEBwc9ufEJvy9rfGH4x8wyji90omPAUqMJKfSCJ5H7v0PfwQnM7xxw50kTA741qC5GACZ+PAKsrjC0K6VZ5tAQGtkEvqa5FFUX8w/Q5Yg+RzNdY9o55SOuKf8K2FyUR4qJy/PNATPUnqvW0mocluW+PXBFdwnleHl6pDUObrYsXkQKJ1sHw74tWJHPsgpL7ffZjpRt8KBRKKMaBp2P01+xXhk1Ar86blgyXzMlrw+ia+VlnGkRNeYfV9l3NHYh+rEic6A8T/6XqAgbjtrQyCKjRMwATDUk4rFctpVQP7zURHzPo9Y+/z+RQzHQKDBqcj3BjbQZAwuP+9viqZ+vzXb724UIC1X6eBan7xlNJMDBw== jaohaohsuan@gmail.com
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7DVGV5Agh45zZFJHjpUWjRgB1u5JuypitHOScLgm6i/tPiLjslbVOma5M0XMt9b5xz+STtRwlqH2vax+vYpwTIExSrlJmNKez/6KJJ9Xim6DEbkLX7FWYj4nr5/YNhAH6SLILtFdvbSVE6PAT92gYvDPtSEs57SdUK/W4Y+XWQXV7RtAcSEahKEvo5/eqFMtYnQNlOIu7gaKZSgjMfHTl8aokwRmACsG/OnOSvfXwGJcNoId1H78e9X4S6QeOz92h3D3VRrPCtiJSnceZ0xMJe/R1m3z7uhVJQTGQH/WUSHPNKRwDEehvCP13bBQ6ok+s3pk1VYFeIGABxIo0evStRSfKBXa98lUleyfpFYaPUmyhw6STgeKp+dA58NzJySS3mJQlde8x1MtQmRsomqI9vio9KxsYGMJmO0W77I7MX8enob1x6OP9dJySvOnY7fF62UR9CeTQFrxBS/tL10Xr4O3/3zYdX3mmdYI7ZhDPuEqH19aqadNkDFDFJzRa1rwfXBsSZkxgCdhP55ARnEeHYFEy5oyxxBcFfNB56zfw53cdcCGQA9oqmZEoAto/m54I7bPgAUebJHzcWDNrOjOhdeG9dpMVaaOphuFlXIx0lkvoOWu6Tr/PTnhQe8JCR3xQ6y6UiIQ1iA2gNPvJsy/p0BSlweKvS8Csdb0ZUe1qJw== jaohaohsuan@gmail.com
 
 write_files:
+  - path: /srv/kubeadm/node.yaml
+    owner: root
+    permissions: "0644"
+    content: |
+      apiVersion: kubeadm.k8s.io/v1alpha1
+      kind: NodeConfiguration
+      masterAddresses:
+      - MasterIPAddress
+      secrets:
+        givenToken: KubernetesToken 
   - path: /etc/kubelet-rkt
     owner: root
     permissions: "0644"
@@ -30,7 +39,7 @@ write_files:
         -v /etc/cni:/etc/cni \
         -e TERM=xterm \
         gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
-      KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
+      KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage' --hostname-override=ServerIPAddress"
 
   - path: /etc/profile.d/bash_completion.sh
     content: |
@@ -43,20 +52,92 @@ write_files:
     content: |
       PRIVATEIP=ServerIPAddress
 
+  - path: /opt/bin/speed
+    owner: root
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      iface=$1
+      RXB=$(</sys/class/net/"$iface"/statistics/rx_bytes)
+      TXB=$(</sys/class/net/"$iface"/statistics/tx_bytes)
+      sleep 2
+      RXBN=$(</sys/class/net/"$iface"/statistics/rx_bytes)
+      TXBN=$(</sys/class/net/"$iface"/statistics/tx_bytes)
+      RXDIF=$(echo $((RXBN - RXB)) )
+      TXDIF=$(echo $((TXBN - TXB)) )
+      echo -e "$((RXDIF / 1024 / 2))K/s $((TXDIF / 1024 / 2))K/s"
+
+  - path: /root/.tmux.conf
+    owner: root
+    permissions: "0644"
+    content: |
+      set -g prefix C-a
+      bind C-a send-prefix
+
+      bind r source-file ~/.tmux.conf \; display "Reloaded!"
+
+      set -s escape-time 1
+
+      set -g base-index 1
+      set -g pane-base-index 1
+
+      set -g default-terminal "screen-256color"
+      set -g status-fg colour243
+      set -g status-bg colour233
+      set -g window-status-fg colour110
+      set -g window-status-bg default
+      set -g window-status-attr dim
+
+      set -g window-status-current-fg colour110
+      set -g window-status-current-bg colour234
+
+      set -g status-left-length 20
+      set -g status-left '#[fg=colour243,bg=colour235] Session #S '
+      set -g status-right "#[fg=colour136,bg=colour233] net #(speed eth0) #[fg=colour241,bg=colour234] #(/usr/bin/ip route get 8.8.8.8 | awk 'NR==1{print $(NF)}') #[fg=colour244,bg=colour236] %H:%M:%S "
+      set -g status-justify left
+
+      # window status
+      setw -g window-status-format "#[fg=colour240]#[bg=colour235] #I #[bg=colour233]#[fg=colour240] #W "
+      setw -g window-status-current-format "#[bg=colour220]#[fg=colour239] #I-#P #[fg=colour179]#[bg=colour234] #W "
+
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
+      bind -r H resize-pane -L 5
+      bind -r J resize-pane -D 5
+      bind -r K resize-pane -U 5
+      bind -r L resize-pane -R 5
+
+      set-option -g -q mouse on
+      setw -g mode-keys vi
+
+      # Setup 'v' to begin selection as in Vim
+      bind-key -t vi-copy v begin-selection
+
+      # Update default binding of `Enter` to also use copy-pipe
+      unbind -t vi-copy Enter
+
+  - path: /opt/bin/kubectl
+    owner: root
+    permissions: "0755"
+    content: |
+      #!/usr/bin/bash -e
+      if [ ! -f /opt/bin/hyperkube ]; then
+      containerid=`docker ps | grep kubelet | grep -v pause | awk '{print $1}'`
+        docker cp "$containerid":/hyperkube /opt/bin/
+      fi
+      exec /opt/bin/hyperkube kubectl "$@"
+
 coreos:
   etcd2:
     proxy: on
     listen-client-urls: http://localhost:2379
     initial-cluster: etcdserver=http://MasterIPAddress:2380
-  fleet:
-    etcd_servers: "http://localhost:2379"
   units:
     - name: etcd2.service
       command: start
-    - name: fleet.service
-      command: start
-
-  units:
     - name: systemd-networkd.service
       command: stop
     - name: 00-eth0.network
@@ -142,7 +223,7 @@ coreos:
         [Service]
         EnvironmentFile=/etc/kubelet-docker
         Environment=KUBELET_IMAGE_TAG=vK8SVersion_coreos.0
-        ExecStartPre=-/usr/bin/docker rm -f kubelet	
+        ExecStartPre=-/usr/bin/docker rm -f kubelet 
         #ExecStart=/usr/lib/coreos/kubelet-wrapper $KUBELET_ARGS
         ExecStart=/usr/bin/docker run --name=kubelet --rm $DOCKER_RUN_ARGS ./hyperkube kubelet $KUBELET_ARGS
 

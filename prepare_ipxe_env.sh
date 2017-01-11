@@ -4,9 +4,9 @@ set -e
 
 K8SVersion=1.5.1
 CoreOSInstallationVersion=1235.5.0
-iPXE_Server_IP=192.168.56.90
-RouterIP=192.168.56.1
-ethX=eth1
+iPXE_Server_IP=192.168.1.100
+RouterIP=192.168.1.1
+ethX=eno1
 
 UpdateConf() {
   Subnet=${iPXE_Server_IP%.*}.0
@@ -93,11 +93,11 @@ apt-get update
 apt-get install -y docker-engine
 
 # Download rkt's hyperkube image
-if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
-    mkdir -p /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0
-fi
-wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci
-wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci.asc/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci.asc
+# if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
+#     mkdir -p /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0
+# fi
+# wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci
+# wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci.asc/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci.asc
 
 # Download coreos_production_iso_image.iso to get vmlinuz, cpio.gz and pxelinux.0
 wget -c -P /root https://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
@@ -116,44 +116,22 @@ umount /mnt
 wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
 wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
 wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.10.12/ActivePython-2.7.10.12-linux-x86_64.tar.gz
-wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
-wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
+wget -c -P /var/www/html/soft https://dl.k8s.io/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
+#wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
 
-docker pull gcr.io/google_containers/hyperkube-amd64:v${K8SVersion}
-docker pull gcr.io/google_containers/kube-discovery-amd64:1.0
-docker pull gcr.io/google_containers/kubedns-amd64:1.7
-docker pull gcr.io/google_containers/exechealthz-amd64:1.1
-docker pull gcr.io/google_containers/kube-dnsmasq-amd64:1.3
-docker pull gcr.io/google_containers/pause-amd64:3.0
-docker pull calico/node:v0.22.0
-docker pull calico/cni:v1.4.2
-docker pull calico/ctl:v0.22.0
-docker pull calico/kube-policy-controller:v0.3.0
-docker pull quay.io/coreos/pod-checkpointer:b4f0353cc12d95737628b8815625cc8e5cedb6fc
-docker pull quay.io/coreos/hyperkube:v${K8SVersion}_coreos.0
-docker pull gcr.io/google_containers/dnsmasq-metrics-amd64:1.0
-docker pull gcr.io/google_containers/kubedns-amd64:1.9
-docker pull gcr.io/google_containers/kube-dnsmasq-amd64:1.4
-
-docker save gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} > /var/www/html/images/docker/hyperkube-amd64_v${K8SVersion}.tar
-docker save gcr.io/google_containers/kube-discovery-amd64:1.0 > /var/www/html/images/docker/kube-discovery-amd64_1.0.tar
-docker save gcr.io/google_containers/kubedns-amd64:1.7 > /var/www/html/images/docker/kubedns-amd64_1.7.tar
-docker save gcr.io/google_containers/exechealthz-amd64:1.1 > /var/www/html/images/docker/exechealthz-amd64_1.1.tar
-docker save gcr.io/google_containers/kube-dnsmasq-amd64:1.3 > /var/www/html/images/docker/kube-dnsmasq-amd64_1.3.tar
-docker save gcr.io/google_containers/pause-amd64:3.0 > /var/www/html/images/docker/pause-amd64_3.0.tar
-docker save calico/node:v0.22.0 > /var/www/html/images/docker/node_v0.22.0.tar
-docker save calico/cni:v1.4.2 > /var/www/html/images/docker/cni_v1.4.2.tar
-docker save calico/ctl:v0.22.0 > /var/www/html/images/docker/ctl_v0.22.0.tar
-docker save calico/kube-policy-controller:v0.3.0 > /var/www/html/images/docker/kube-policy-controller_v0.3.0.tar
-docker save quay.io/coreos/pod-checkpointer:b4f0353cc12d95737628b8815625cc8e5cedb6fc > /var/www/html/images/docker/pod-checkpointer.tar
-docker save quay.io/coreos/hyperkube:v${K8SVersion}_coreos.0 > /var/www/html/images/docker/hyperkube_v${K8SVersion}_coreos.0.tar
-docker save gcr.io/google_containers/dnsmasq-metrics-amd64:1.0 > /var/www/html/images/docker/dnsmasq-metrics-amd64_1.0.tar
-docker save gcr.io/google_containers/kubedns-amd64:1.9 > /var/www/html/images/docker/kubedns-amd64_1.9.tar
-docker save gcr.io/google_containers/kube-dnsmasq-amd64:1.4 > /var/www/html/images/docker/kube-dnsmasq-amd64_1.4.tar
+# pull and tar image
+while read -r line
+do
+    img="$line"
+    docker pull $img
+    tar_filename=`echo ${img##*/} | tr ':' '_'`.tar
+    echo "Saving $img to $tar_filename"
+    docker save $img > /var/www/html/images/docker/$tar_filename 
+done < "./prod-images"
 
 # save all image tar to list
-ls -1 /var/www/html/images/docker/ > /var/www/html/images/docker-list
+ls -1 /var/www/html/images/docker/ | grep -i '.tar' > /var/www/html/images/docker-list
 
-docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
+#docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
 UpdateConf

@@ -4,10 +4,424 @@ hostname: HostName
 
 # include one or more SSH public keys
 ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCxX2im4hTlGi2+oUaqzmguRmXOoHqFofvSILYegBHu2cmu3cHMFyQX9mBa2qVJ/+d6F/lfJ1XX4OYxPwtEe4YHgzsUzvUgZod3x2hoim2uOGaf0BoRdTAnQxY6Tum9fylI+MzMmDLFR1d2G3AzGyDPc9baZJWVCElNLbeq47sXITiVl5j52u+WHPRnEy/PMIX5amLPWTBYPds7qF8zlUJaM6r9xedFyyv2t5J/6Zn755f0S9rEVw5ga8H71qj4d9MgaHF5DjLS46ml5lL7vmNpk2wdIL54ncZ5a/I4JcFsnhycrBIXVoaq+aubstyByG6S8qa4OqSPOIaHvfaIK9fNcffVoTzjGNyZo5yy2qEemSPQ0emSp0CiuGra7E4cPnbhFdfEJHXOz7+TJ5CwY0QvR6wEOr0t5PxzHZsI4aoKvrrEeoeua9guZmRU41SujCvi4sDSXRVfxyq6yLhk9kVS4/zbXIsANN9p9CkeXUsZiAqUv6d+rRXY2kuh0S5aM9a1GoRHbfYxeNIXeko3hkJnl9CFtd2qnio0L+vLF55wvuvYgoxmW/YtNfIsI8DO43+Ydez7SIGfauuErBqPhAUYL2U5S4i8p/Oqnzuxm755R5/yXO3Wxko27LC09YhnZGk8AswsIv3rdgYiNscDQMZorya5WH4lnJjkJnmmOh44mw== jaohaohsuan@gmail.com
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCmUIsevaUMci2lwlj4TYbnH/jS28VBmeJT5KxpT4ku9AZFVnNEfX1C0ZdNF7wW1V1k+Cj3Vzc4KZeBja5imsY/ynmkxsDmrhO5Fga6AtWqottz9HbQNvesjfLfx5/QoGaRycH2r5BZhbCTuRGpiKXKvAh9EmyFFdxb2di+6J4QbwGruF3zWTTijcq70Ip+Dsdfottq2hkNIFIzdgxFm0eXVMOnFEek5AEiCYKYF9VQHjT0NGFqaT4LQPXE3q3Ibox8FgG2T72DlK3YZaxLEKsy2QMpgEFu877cj/oFwLi8V3megOfEjKItuI7UrCml2jmXEBwc9ufEJvy9rfGH4x8wyji90omPAUqMJKfSCJ5H7v0PfwQnM7xxw50kTA741qC5GACZ+PAKsrjC0K6VZ5tAQGtkEvqa5FFUX8w/Q5Yg+RzNdY9o55SOuKf8K2FyUR4qJy/PNATPUnqvW0mocluW+PXBFdwnleHl6pDUObrYsXkQKJ1sHw74tWJHPsgpL7ffZjpRt8KBRKKMaBp2P01+xXhk1Ar86blgyXzMlrw+ia+VlnGkRNeYfV9l3NHYh+rEic6A8T/6XqAgbjtrQyCKjRMwATDUk4rFctpVQP7zURHzPo9Y+/z+RQzHQKDBqcj3BjbQZAwuP+9viqZ+vzXb724UIC1X6eBan7xlNJMDBw== jaohaohsuan@gmail.com
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7DVGV5Agh45zZFJHjpUWjRgB1u5JuypitHOScLgm6i/tPiLjslbVOma5M0XMt9b5xz+STtRwlqH2vax+vYpwTIExSrlJmNKez/6KJJ9Xim6DEbkLX7FWYj4nr5/YNhAH6SLILtFdvbSVE6PAT92gYvDPtSEs57SdUK/W4Y+XWQXV7RtAcSEahKEvo5/eqFMtYnQNlOIu7gaKZSgjMfHTl8aokwRmACsG/OnOSvfXwGJcNoId1H78e9X4S6QeOz92h3D3VRrPCtiJSnceZ0xMJe/R1m3z7uhVJQTGQH/WUSHPNKRwDEehvCP13bBQ6ok+s3pk1VYFeIGABxIo0evStRSfKBXa98lUleyfpFYaPUmyhw6STgeKp+dA58NzJySS3mJQlde8x1MtQmRsomqI9vio9KxsYGMJmO0W77I7MX8enob1x6OP9dJySvOnY7fF62UR9CeTQFrxBS/tL10Xr4O3/3zYdX3mmdYI7ZhDPuEqH19aqadNkDFDFJzRa1rwfXBsSZkxgCdhP55ARnEeHYFEy5oyxxBcFfNB56zfw53cdcCGQA9oqmZEoAto/m54I7bPgAUebJHzcWDNrOjOhdeG9dpMVaaOphuFlXIx0lkvoOWu6Tr/PTnhQe8JCR3xQ6y6UiIQ1iA2gNPvJsy/p0BSlweKvS8Csdb0ZUe1qJw== jaohaohsuan@gmail.com
 
 write_files:
+  - path: /srv/kubeadm/master.yaml
+    owner: root
+    permissions: "0644"
+    content: |
+      apiVersion: kubeadm.k8s.io/v1alpha1
+      kind: MasterConfiguration
+      api:
+        advertiseAddresses:
+        - ServerIPAddress
+      etcd:
+        endpoints:
+        - http://ServerIPAddress:2379
+      kubernetesVersion: v1.5.1
+      secrets:
+        givenToken: KubernetesToken
+  - path: /srv/asset/manifests/calico.yaml
+    owner: root
+    permissions: "0644"
+    content: |
+      # This ConfigMap is used to configure a self-hosted Calico installation.
+      # http://docs.projectcalico.org/v2.0/getting-started/kubernetes/installation/hosted/kubeadm/
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: calico-config
+        namespace: kube-system
+      data:
+        # The location of your etcd cluster.  This uses the Service clusterIP
+        # defined below.
+        etcd_endpoints: "http://10.96.232.136:6666"
+
+        # True enables BGP networking, false tells Calico to enforce
+        # policy only, using native networking.
+        enable_bgp: "true"
+
+        # The CNI network configuration to install on each node.
+        cni_network_config: |-
+          {
+              "name": "k8s-pod-network",
+              "type": "calico",
+              "etcd_endpoints": "__ETCD_ENDPOINTS__",
+              "log_level": "info",
+              "ipam": {
+                  "type": "calico-ipam"
+              },
+              "policy": {
+                  "type": "k8s",
+                   "k8s_api_root": "https://__KUBERNETES_SERVICE_HOST__:__KUBERNETES_SERVICE_PORT__",
+                   "k8s_auth_token": "__SERVICEACCOUNT_TOKEN__"
+              },
+              "kubernetes": {
+                  "kubeconfig": "/etc/cni/net.d/__KUBECONFIG_FILENAME__"
+              }
+          }
+
+        # The default IP Pool to be created for the cluster.
+        # Pod IP addresses will be assigned from this pool.
+        ippool.yaml: |
+            apiVersion: v1
+            kind: ipPool
+            metadata:
+              cidr: 172.1.0.0/16
+            spec:
+              ipip:
+                enabled: true
+              nat-outgoing: true
+
+      ---
+
+      # This manifest installs the Calico etcd on the kubeadm master.  This uses a DaemonSet
+      # to force it to run on the master even when the master isn't schedulable, and uses
+      # nodeSelector to ensure it only runs on the master.
+      apiVersion: extensions/v1beta1
+      kind: DaemonSet
+      metadata:
+        name: calico-etcd
+        namespace: kube-system
+        labels:
+          k8s-app: calico-etcd
+      spec:
+        template:
+          metadata:
+            labels:
+              k8s-app: calico-etcd
+            annotations:
+              scheduler.alpha.kubernetes.io/critical-pod: ''
+              scheduler.alpha.kubernetes.io/tolerations: |
+                [{"key": "dedicated", "value": "master", "effect": "NoSchedule" },
+                 {"key":"CriticalAddonsOnly", "operator":"Exists"}]
+          spec:
+            # Only run this pod on the master.
+            nodeSelector:
+              kubeadm.alpha.kubernetes.io/role: master
+            hostNetwork: true
+            containers:
+              - name: calico-etcd
+                image: gcr.io/google_containers/etcd:2.2.1
+                env:
+                  - name: CALICO_ETCD_IP
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: status.podIP
+                command: ["/bin/sh","-c"]
+                args: ["/usr/local/bin/etcd --name=calico --data-dir=/var/etcd/calico-data --advertise-client-urls=http://$CALICO_ETCD_IP:6666 --listen-client-urls=http://0.0.0.0:6666 --listen-peer-urls=http://0.0.0.0:6667"]
+                volumeMounts:
+                  - name: var-etcd
+                    mountPath: /var/etcd
+            volumes:
+              - name: var-etcd
+                hostPath:
+                  path: /var/etcd
+
+      ---
+
+      # This manfiest installs the Service which gets traffic to the Calico
+      # etcd.
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          k8s-app: calico-etcd
+        name: calico-etcd
+        namespace: kube-system
+      spec:
+        # Select the calico-etcd pod running on the master.
+        selector:
+          k8s-app: calico-etcd
+        # This ClusterIP needs to be known in advance, since we cannot rely
+        # on DNS to get access to etcd.
+        clusterIP: 10.96.232.136
+        ports:
+          - port: 6666
+
+      ---
+
+      # This manifest installs the calico/node container, as well
+      # as the Calico CNI plugins and network config on
+      # each master and worker node in a Kubernetes cluster.
+      kind: DaemonSet
+      apiVersion: extensions/v1beta1
+      metadata:
+        name: calico-node
+        namespace: kube-system
+        labels:
+          k8s-app: calico-node
+      spec:
+        selector:
+          matchLabels:
+            k8s-app: calico-node
+        template:
+          metadata:
+            labels:
+              k8s-app: calico-node
+            annotations:
+              scheduler.alpha.kubernetes.io/critical-pod: ''
+              scheduler.alpha.kubernetes.io/tolerations: |
+                [{"key": "dedicated", "value": "master", "effect": "NoSchedule" },
+                 {"key":"CriticalAddonsOnly", "operator":"Exists"}]
+          spec:
+            hostNetwork: true
+            containers:
+              # Runs calico/node container on each Kubernetes node.  This
+              # container programs network policy and routes on each
+              # host.
+              - name: calico-node
+                image: quay.io/calico/node:v1.0.0
+                env:
+                  # The location of the Calico etcd cluster.
+                  - name: ETCD_ENDPOINTS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: etcd_endpoints
+                  # Enable BGP.  Disable to enforce policy only.
+                  - name: CALICO_NETWORKING
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: enable_bgp
+                  # Disable file logging so `kubectl logs` works.
+                  - name: CALICO_DISABLE_FILE_LOGGING
+                    value: "true"
+                  # Don't configure a default pool.  This is done by the Job
+                  # below.
+                  - name: NO_DEFAULT_POOLS
+                    value: "true"
+                  # Auto-detect the BGP IP address.
+                  - name: IP
+                    value: ""
+                securityContext:
+                  privileged: true
+                volumeMounts:
+                  - mountPath: /lib/modules
+                    name: lib-modules
+                    readOnly: true
+                  - mountPath: /var/run/calico
+                    name: var-run-calico
+                    readOnly: false
+              # This container installs the Calico CNI binaries
+              # and CNI network config file on each node.
+              - name: install-cni
+                image: calico/cni:v1.5.5
+                command: ["/install-cni.sh"]
+                env:
+                  # The location of the Calico etcd cluster.
+                  - name: ETCD_ENDPOINTS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: etcd_endpoints
+                  # The CNI network config to install on each node.
+                  - name: CNI_NETWORK_CONFIG
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: cni_network_config
+                volumeMounts:
+                  - mountPath: /host/opt/cni/bin
+                    name: cni-bin-dir
+                  - mountPath: /host/etc/cni/net.d
+                    name: cni-net-dir
+            volumes:
+              # Used by calico/node.
+              - name: lib-modules
+                hostPath:
+                  path: /lib/modules
+              - name: var-run-calico
+                hostPath:
+                  path: /var/run/calico
+              # Used to install CNI.
+              - name: cni-bin-dir
+                hostPath:
+                  path: /opt/cni/bin
+              - name: cni-net-dir
+                hostPath:
+                  path: /etc/cni/net.d
+
+      ---
+
+      # This manifest deploys the Calico policy controller on Kubernetes.
+      # See https://github.com/projectcalico/k8s-policy
+      apiVersion: extensions/v1beta1
+      kind: Deployment 
+      metadata:
+        name: calico-policy-controller
+        namespace: kube-system
+        labels:
+          k8s-app: calico-policy
+      spec:
+        # The policy controller can only have a single active instance.
+        replicas: 1
+        strategy:
+          type: Recreate
+        template:
+          metadata:
+            name: calico-policy-controller
+            namespace: kube-system
+            labels:
+              k8s-app: calico-policy-controller
+            annotations:
+              scheduler.alpha.kubernetes.io/critical-pod: ''
+              scheduler.alpha.kubernetes.io/tolerations: |
+                [{"key": "dedicated", "value": "master", "effect": "NoSchedule" },
+                 {"key":"CriticalAddonsOnly", "operator":"Exists"}]
+          spec:
+            # The policy controller must run in the host network namespace so that
+            # it isn't governed by policy that would prevent it from working.
+            hostNetwork: true
+            containers:
+              - name: calico-policy-controller
+                image: calico/kube-policy-controller:v0.5.1
+                env:
+                  # The location of the Calico etcd cluster.
+                  - name: ETCD_ENDPOINTS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: etcd_endpoints
+                  # The location of the Kubernetes API.  Use the default Kubernetes
+                  # service for API access.
+                  - name: K8S_API
+                    value: "https://kubernetes.default:443"
+                  # Since we're running in the host namespace and might not have KubeDNS
+                  # access, configure the container's /etc/hosts to resolve
+                  # kubernetes.default to the correct service clusterIP.
+                  - name: CONFIGURE_ETC_HOSTS
+                    value: "true"
+
+      ---
+
+      ## This manifest deploys a Job which performs one time
+      # configuration of Calico
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: configure-calico
+        namespace: kube-system
+        labels:
+          k8s-app: calico
+      spec:
+        template:
+          metadata:
+            name: configure-calico
+            annotations:
+              scheduler.alpha.kubernetes.io/critical-pod: ''
+              scheduler.alpha.kubernetes.io/tolerations: |
+                [{"key": "dedicated", "value": "master", "effect": "NoSchedule" },
+                 {"key":"CriticalAddonsOnly", "operator":"Exists"}]
+          spec:
+            hostNetwork: true
+            restartPolicy: OnFailure
+            containers:
+              # Writes basic configuration to datastore.
+              - name: configure-calico
+                image: calico/ctl:v1.0.0
+                args:
+                - apply
+                - -f
+                - /etc/config/calico/ippool.yaml
+                volumeMounts:
+                  - name: config-volume
+                    mountPath: /etc/config
+                env:
+                  # The location of the etcd cluster.
+                  - name: ETCD_ENDPOINTS
+                    valueFrom:
+                      configMapKeyRef:
+                        name: calico-config
+                        key: etcd_endpoints
+            volumes:
+             - name: config-volume
+               configMap:
+                 name: calico-config
+                 items:
+                  - key: ippool.yaml
+                    path: calico/ippool.yaml
+
+  - path: /opt/bin/speed
+    owner: root
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      iface=$1
+      RXB=$(</sys/class/net/"$iface"/statistics/rx_bytes)
+      TXB=$(</sys/class/net/"$iface"/statistics/tx_bytes)
+      sleep 2
+      RXBN=$(</sys/class/net/"$iface"/statistics/rx_bytes)
+      TXBN=$(</sys/class/net/"$iface"/statistics/tx_bytes)
+      RXDIF=$(echo $((RXBN - RXB)) )
+      TXDIF=$(echo $((TXBN - TXB)) )
+      echo -e "$((RXDIF / 1024 / 2))K/s $((TXDIF / 1024 / 2))K/s"
+
+  - path: /root/.tmux.conf
+    owner: root
+    permissions: "0644"
+    content: |
+      set -g prefix C-a
+      bind C-a send-prefix
+
+      bind r source-file ~/.tmux.conf \; display "Reloaded!"
+
+      set -s escape-time 1
+
+      set -g base-index 1
+      set -g pane-base-index 1
+
+      set -g default-terminal "screen-256color"
+      set -g status-fg colour243
+      set -g status-bg colour233
+      set -g window-status-fg colour110
+      set -g window-status-bg default
+      set -g window-status-attr dim
+
+      set -g window-status-current-fg colour110
+      set -g window-status-current-bg colour234
+
+      set -g status-left-length 20
+      set -g status-left '#[fg=colour243,bg=colour235] Session #S '
+      set -g status-right "#[fg=colour136,bg=colour233] net #(speed eth0) #[fg=colour241,bg=colour234] #(/usr/bin/ip route get 8.8.8.8 | awk 'NR==1{print $(NF)}') #[fg=colour244,bg=colour236] %H:%M:%S "
+      set -g status-justify left
+
+      # window status
+      setw -g window-status-format "#[fg=colour240]#[bg=colour235] #I #[bg=colour233]#[fg=colour240] #W "
+      setw -g window-status-current-format "#[bg=colour220]#[fg=colour239] #I-#P #[fg=colour179]#[bg=colour234] #W "
+
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
+      bind -r H resize-pane -L 5
+      bind -r J resize-pane -D 5
+      bind -r K resize-pane -U 5
+      bind -r L resize-pane -R 5
+
+      set-option -g -q mouse on
+      setw -g mode-keys vi
+
+      # Setup 'v' to begin selection as in Vim
+      bind-key -t vi-copy v begin-selection
+
+      # Update default binding of `Enter` to also use copy-pipe
+      unbind -t vi-copy Enter
+
+  - path: /opt/bin/kubectl
+    owner: root
+    permissions: "0755"
+    content: |
+      #!/usr/bin/bash -e
+      if [ ! -f /opt/bin/hyperkube ]; then
+      containerid=`docker ps | grep kubelet | grep -v pause | awk '{print $1}'`
+        docker cp "$containerid":/hyperkube /opt/bin/
+      fi
+      exec /opt/bin/hyperkube kubectl "$@"
+
   - path: /etc/kubelet-rkt
     owner: root
     permissions: "0644"
@@ -30,7 +444,7 @@ write_files:
         -v /etc/cni:/etc/cni \
         -e TERM=xterm \
         gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
-      KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage'"
+      KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='node=storage' --hostname-override=ServerIPAddress"
 
   - path: /etc/profile.d/bash_completion.sh
     content: |
@@ -133,6 +547,17 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
+    - name: kubelet.path
+      enable: true
+      command: start
+      content: |
+        [Unit]
+        Description=Watch for kubeconfig
+        [Path]
+        PathExists=/etc/kubernetes/kubeconfig
+        [Install]
+        WantedBy=multi-user.target
+
     - name: kubelet.service
       command: start
       content: |
@@ -143,7 +568,7 @@ coreos:
         [Service]
         EnvironmentFile=/etc/kubelet-docker
         Environment=KUBELET_IMAGE_TAG=vK8SVersion_coreos.0
-        ExecStartPre=-/usr/bin/docker rm -f kubelet	
+        ExecStartPre=-/usr/bin/docker rm -f kubelet 
         #ExecStart=/usr/lib/coreos/kubelet-wrapper $KUBELET_ARGS
         ExecStart=/usr/bin/docker run --name=kubelet --rm $DOCKER_RUN_ARGS ./hyperkube kubelet $KUBELET_ARGS
 
@@ -158,15 +583,14 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=Create kubelet necessary configuration file
+        Description=Create kubelet necessary configuration file (http://kubernetes.io/docs/admin/kubeadm/)
         ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
         [Service]
         Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:vK8SVersion
         ExecStartPre=/usr/bin/ls /.check_coreos-installd.service
         RemainAfterExit=yes
-        ExecStart=/opt/bin/kubeadm init --token=KubernetesToken --skip-preflight-checks --use-kubernetes-version vK8SVersion \
-            --api-advertise-addresses ServerIPAddress --external-etcd-endpoints http://ServerIPAddress:2379
+        ExecStart=/opt/bin/kubeadm init --skip-preflight-checks --config=/srv/kubeadm/master.yaml
         Restart=always
         RestartSec=5
 
@@ -199,13 +623,7 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/opt/bin/kubectl get po
-        ExecStart=/usr/bin/bash -c "wget -N -P /root http://iPXE_Server_IP/soft/kubeadm-anatomy.tgz && \
-            PATH=$PATH:/opt/bin && tar xzvf /root/kubeadm-anatomy.tgz -C /root && \
-            cd /root/kubeadm-anatomy/calico && \
-            ETCD_IP=ServerIPAddress envsubst < calico-config.yml | kubectl apply -f - && \
-            kubectl apply -f calico-node-daemonset.yml && \
-            kubectl apply -f configure-calico.yml && \
-            kubectl apply -f calico-policy-controller.yml"
+        ExecStart=/usr/bin/bash -c "PATH=$PATH:/opt/bin && kubectl apply -f /srv/asset/manifests/calico.yaml"
         Restart=always
         RestartSec=5
 
@@ -243,6 +661,11 @@ users:
       - sudo
       - docker
   - name: inu
+    passwd: "$6$rounds=4096$yTXdzXEJJzKRX74$Nxo6drS5qdJVpV5C.RqVE2ufRwqq./62xrKRXws4tWI0KM1jMPjt.DbESTdDdzHMYIbbkMeGUQa6j4Ow0Rar7."
+    groups:
+      - sudo
+      - docker
+  - name: henry
     passwd: "$6$rounds=4096$yTXdzXEJJzKRX74$Nxo6drS5qdJVpV5C.RqVE2ufRwqq./62xrKRXws4tWI0KM1jMPjt.DbESTdDdzHMYIbbkMeGUQa6j4Ow0Rar7."
     groups:
       - sudo
