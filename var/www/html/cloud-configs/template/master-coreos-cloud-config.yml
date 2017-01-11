@@ -547,17 +547,6 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: kubelet.path
-      enable: true
-      command: start
-      content: |
-        [Unit]
-        Description=Watch for kubeconfig
-        [Path]
-        PathExists=/etc/kubernetes/kubeconfig
-        [Install]
-        WantedBy=multi-user.target
-
     - name: kubelet.service
       command: start
       content: |
