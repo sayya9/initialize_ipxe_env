@@ -22,16 +22,9 @@ rm -rf /opt/ActivePython-2.7.10.12-linux-x86_64.tar.gz /opt/ActivePython-2.7.10.
 curl -o /opt/bin/tmux http://iPXE_Server_IP/soft/tmux
 chmod +x /opt/bin/tmux
 
-# Install kubeadm on CoreOS
-wget -q -N -P /opt/bin http://iPXE_Server_IP/soft/kubeadm
-chmod +x /opt/bin/kubeadm
-
-# Install cni binary file
-CNI_URL=http://iPXE_Server_IP/soft/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
-if [ ! -d "/opt/cni/bin" ]; then
-  echo "Installing .."
-  /usr/bin/mkdir -p /opt/cni && /usr/bin/curl -Ls $CNI_URL | /usr/bin/tar zxv -C /opt/cni;
-fi
+# Install kubeadm necessary bins
+# TODO://henryrao should change to ENV
+docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/* /opt/"
 
 # Install bootkube
 #wget -q -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube

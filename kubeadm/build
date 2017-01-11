@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+k8s_ver=${1:-1.5.1}
+k8s_dir=kubernetes-$k8s_ver
+registry_repo=${2:-henryrao}
+
+if [ ! -d `pwd`/kubernetes-$k8s_ver ]; then
+  curl -Lsk https://github.com/kubernetes/kubernetes/archive/v$k8s_ver.tar.gz | tar -zxC `pwd`/
+else
+  echo $(date -u) "Skip downloading kubernetes v$k8s_ver source code."
+fi
+
+if [ ! -d $k8s_dir/_output/dockerized/bin ]; then
+  cd $k8s_dir
+  # compile k8s
+  ./build-tools/run.sh make
+  chmod +r _output/dockerized/bin/linux/amd64/*
+  cd -
+fi
+
+ls -1 $k8s_dir/_output/dockerized/bin/linux/amd64 | grep -i kube
+
+output=/out
+cat <<EOF > Dockerfile
+FROM alpine:edge
+
+ARG cni_url=https://dl.k8s.io/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
+
+RUN apk --update add --virtual build-dependencies curl \\
+  && mkdir -p $output/cni \\
+  && curl -Lsk \$cni_url | tar -zxC $output/cni \\
+  && apk del build-dependencies \\
+  && rm -rf /var/cache/apk/*
+
+ADD ./$k8s_dir/_output/dockerized/bin/linux/amd64/kubeadm $output/bin/kubeadm
+EOF
+
+cat <<EOF > .dockerignore
+*/*
+!kubernetes-$k8s_ver/_output/dockerized/bin/linux/amd64/kubeadm
+EOF
+
+docker build -t $registry_repo/kubeadm:v$k8s_ver .
+# docker login
+docker push $registry_repo/kubeadm:v$k8s_ver
