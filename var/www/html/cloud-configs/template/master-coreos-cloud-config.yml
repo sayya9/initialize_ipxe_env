@@ -457,6 +457,15 @@ write_files:
     content: |
       PRIVATEIP=ServerIPAddress
 
+  - path: /etc/profile.d/vim.sh
+    content: |
+      PATH=/opt/vim/bin:$PATH
+      export VIMRUNTIME=/opt/vim/share
+
+  - path: /etc/environment
+    content: |
+      PRIVATEIP=ServerIPAddress
+
 coreos:
   etcd2:
     name: etcdserver
@@ -504,7 +513,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/coreos-installd.sh | bash -'
+        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/coreos-installd.sh | bash -ex -'
 
         [Install]
         WantedBy=multi-user.target

@@ -21,7 +21,7 @@ fi
 ls -1 $k8s_dir/_output/dockerized/bin/linux/amd64 | grep -i kube
 
 output=/out
-cat <<EOF > Dockerfile
+cat << EOF > Dockerfile
 FROM alpine:edge
 
 ARG cni_url=https://dl.k8s.io/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
@@ -35,7 +35,7 @@ RUN apk --update add --virtual build-dependencies curl \\
 ADD ./$k8s_dir/_output/dockerized/bin/linux/amd64/kubeadm $output/bin/kubeadm
 EOF
 
-cat <<EOF > .dockerignore
+cat << EOF > .dockerignore
 */*
 !kubernetes-$k8s_ver/_output/dockerized/bin/linux/amd64/kubeadm
 EOF

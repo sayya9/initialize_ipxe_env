@@ -10,3 +10,5 @@ gcr.io/google_containers/etcd:2.2.1
 gcr.io/google_containers/hyperkube-amd64:v1.5.1
 gcr.io/google_containers/kube-discovery-amd64:1.0
 henryrao/kubeadm:v1.5.1
+gluster/gluster-centos:latest
+heketi/heketi:dev

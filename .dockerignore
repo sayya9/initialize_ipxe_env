@@ -1,0 +1,2 @@
+*/*
+!kubernetes-1.5.1/_output/dockerized/bin/linux/amd64/kubeadm

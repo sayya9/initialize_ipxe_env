@@ -4,9 +4,10 @@ set -e
 
 K8SVersion=1.5.1
 CoreOSInstallationVersion=1235.5.0
-iPXE_Server_IP=192.168.1.100
-RouterIP=192.168.1.1
-ethX=eno1
+iPXE_Server_IP=192.168.56.90
+RouterIP=192.168.56.1
+ethX=eth1
+PrepareDir=$PWD
 
 UpdateConf() {
   Subnet=${iPXE_Server_IP%.*}.0
@@ -120,7 +121,9 @@ wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/rele
 # wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
 
 # build kubeadm
-./kubeadm/build K8SVersion
+cd kubeadm
+./build $K8SVersion
+cd $PrepareDir
 
 # pull and tar image
 while read -r line

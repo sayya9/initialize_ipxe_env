@@ -1,8 +1,4 @@
-#!/bin/bash
-
 PATH=$PATH:/opt/bin
-
-set -e
 
 # Create necessary directory
 mkdir -p /opt/bin /etc/cni/net.d /root/images/docker
@@ -10,7 +6,7 @@ mkdir -p /opt/bin /etc/cni/net.d /root/images/docker
 # Install python 2.7.10.12 on CoreOS
 cd /opt
 wget -q http://iPXE_Server_IP/soft/ActivePython-2.7.10.12-linux-x86_64.tar.gz
-tar xzvf ActivePython-2.7.10.12-linux-x86_64.tar.gz
+tar xzvf ActivePython-2.7.10.12-linux-x86_64.tar.gz 2> /dev/null
 cd ActivePython-2.7.10.12-linux-x86_64 && ./install.sh -I /opt/python-2.7.10.12/
 ln -sf /opt/python-2.7.10.12/bin/easy_install /opt/bin/easy_install
 ln -sf /opt/python-2.7.10.12/bin/pip /opt/bin/pip
@@ -21,10 +17,6 @@ rm -rf /opt/ActivePython-2.7.10.12-linux-x86_64.tar.gz /opt/ActivePython-2.7.10.
 # Install tmux on CoreOS
 curl -o /opt/bin/tmux http://iPXE_Server_IP/soft/tmux
 chmod +x /opt/bin/tmux
-
-# Install kubeadm necessary bins
-# TODO://henryrao should change to ENV
-docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/* /opt/"
 
 # Install bootkube
 #wget -q -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube
@@ -49,6 +41,14 @@ for TAR in `curl http://iPXE_Server_IP/images/docker-list`; do
   wget -q -N -P /root/images/docker http://iPXE_Server_IP/images/docker/$TAR
   docker load -i /root/images/docker/$TAR
 done
+
+# Install kubeadm necessary bins
+# TODO://henryrao should change to ENV
+docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/* /opt/"
+
+# Download vim of newer version
+curl -Lsk http://iPXE_Server_IP/soft/vim.tgz | tar -zxC /opt
+curl -o /opt/vim/share/defaults.vim http://iPXE_Server_IP/misc/vimrc.txt
 
 # Touch file
 touch /.check_coreos-installd.service
