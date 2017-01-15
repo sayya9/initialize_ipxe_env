@@ -249,7 +249,7 @@ write_files:
       # This manifest deploys the Calico policy controller on Kubernetes.
       # See https://github.com/projectcalico/k8s-policy
       apiVersion: extensions/v1beta1
-      kind: Deployment 
+      kind: Deployment
       metadata:
         name: calico-policy-controller
         namespace: kube-system
@@ -566,7 +566,7 @@ coreos:
         [Service]
         EnvironmentFile=/etc/kubelet-docker
         Environment=KUBELET_IMAGE_TAG=vK8SVersion_coreos.0
-        ExecStartPre=-/usr/bin/docker rm -f kubelet 
+        ExecStartPre=-/usr/bin/docker rm -f kubelet
         #ExecStart=/usr/lib/coreos/kubelet-wrapper $KUBELET_ARGS
         ExecStart=/usr/bin/docker run --name=kubelet --rm $DOCKER_RUN_ARGS ./hyperkube kubelet $KUBELET_ARGS
 
