@@ -3,6 +3,9 @@ PATH=$PATH:/opt/bin
 # Create necessary directory
 mkdir -p /opt/bin /etc/cni/net.d /root/images/docker
 
+# Load dm_thin_pool module
+modprobe dm_thin_pool
+
 # Install python 2.7.10.12 on CoreOS
 cd /opt
 wget -q http://iPXE_Server_IP/soft/ActivePython-2.7.10.12-linux-x86_64.tar.gz
@@ -48,7 +51,9 @@ docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/*
 
 # Download vim of newer version
 curl -Lsk http://iPXE_Server_IP/soft/vim.tgz | tar -zxC /opt
-curl -o /opt/vim/share/defaults.vim http://iPXE_Server_IP/misc/vimrc.txt
+curl -Lsk http://iPXE_Server_IP/soft/vim-runtime.tar.gz | tar -zxC /opt/vim
+# curl -o /opt/vim/share/defaults.vim http://iPXE_Server_IP/misc/vimrc.txt
+
 
 # Touch file
 touch /.check_coreos-installd.service

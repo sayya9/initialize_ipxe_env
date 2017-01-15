@@ -2,11 +2,11 @@
 
 set -e
 
-K8SVersion=1.5.1
-CoreOSInstallationVersion=1235.5.0
-iPXE_Server_IP=192.168.56.90
-RouterIP=192.168.56.1
-ethX=eth1
+K8SVersion=1.5.2
+CoreOSInstallationVersion=1235.6.0
+iPXE_Server_IP=192.168.2.110
+RouterIP=192.168.2.1
+ethX=br0
 PrepareDir=$PWD
 
 UpdateConf() {
@@ -66,6 +66,8 @@ EOF
   sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/*
   sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/tftpboot/pxelinux.cfg/by_mac.tpl
   sed -i "s/RouterIP/$RouterIP/g" ${WebDir}/cloud-configs/template/*
+
+
 }
 
 if [ "$1" == "-s" ]; then
@@ -122,22 +124,24 @@ wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/rele
 
 # build kubeadm
 cd kubeadm
-./build $K8SVersion
+`pwd`/build $K8SVersion
 cd $PrepareDir
 
+# update k8s version
+set -x
+sed -i 's/\(hyperkube-amd64:\|kubeadm:\)v[0-9]\+\.[0-9]\+\.[0-9]\+/\1v'$K8SVersion'/g' prod-images
+set +x
+
 # pull and tar image
+rm /var/www/html/images/docker-list
 while read -r line
 do
     img="$line"
     docker pull $img
     tar_filename=`echo ${img##*/} | tr ':' '_'`.tar
     echo "Saving $img to $tar_filename"
-    docker save $img > /var/www/html/images/docker/$tar_filename 
+    docker save $img > /var/www/html/images/docker/$tar_filename
+    echo "$tar_filename" >> /var/www/html/images/docker-list
 done < "./prod-images"
-
-# save all image tar to list
-ls -1 /var/www/html/images/docker/ | grep -i '.tar' > /var/www/html/images/docker-list
-
-#docker run --rm -v /var/www/html/soft:/tmp/bin gcr.io/google_containers/hyperkube-amd64:v${K8SVersion} /bin/sh -c "cp -f /hyperkube /tmp/bin"
 
 UpdateConf
