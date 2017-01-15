@@ -13,7 +13,7 @@ fi
 if [ ! -d $k8s_dir/_output/dockerized/bin ]; then
   cd $k8s_dir
   # compile k8s
-  ./build-tools/run.sh make
+  `pwd`/build/run.sh make
   chmod +r _output/dockerized/bin/linux/amd64/*
   cd -
 fi
