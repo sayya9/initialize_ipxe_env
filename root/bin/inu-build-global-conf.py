@@ -22,8 +22,8 @@ def CreateInstllationConf(InstallationKind):
     ConfFile = ConfDir + '/' + InstallationKind
     f = open(ConfFile, 'w')
     f.write('InstallationKind=' + InstallationKind + '\n')
-    f.write('HostName=' + InstallationKind + '.example.org' + '\n')
-    f.write('CoreOSInstallationVersion=1185.5.0' + '\n')
+    f.write('HostName=' + InstallationKind + '\n')
+    f.write('CoreOSInstallationVersion=1235.6.0' + '\n')
     f.write('ServerIPAddress=your_' + InstallationKind + '_IP_Address' + '\n')
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
