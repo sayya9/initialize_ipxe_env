@@ -10,11 +10,11 @@ coreos:
         [Unit]
         Description=ipxe-installd
         After=network-online.target download-cloud-config.service
-        Requires=network-online.target download-cloud-config.service 
+        Requires=network-online.target download-cloud-config.service
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/coreos-install -d /dev/sda -c /root/InstallationKind-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion
+        ExecStart=/usr/bin/coreos-install -d /dev/`ls /sys/block/ | grep -E '(s|v)da'` -c /root/InstallationKind-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion
 
     - name: download-cloud-config.service
       command: start
