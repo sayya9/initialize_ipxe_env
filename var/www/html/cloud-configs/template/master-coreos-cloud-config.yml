@@ -488,8 +488,13 @@ write_files:
 
   - path: /root/.vimrc
     content: |
+      filetype plugin indent on
       syntax on
+      set backspace=indent,eol,start
       set tabstop=2 shiftwidth=2 expandtab autoindent
+      set paste
+      set listchars=tab:>.,trail:~,extends:>,precedes:<
+      set list
 
   - path: /etc/environment
     content: |
