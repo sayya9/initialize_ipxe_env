@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/bin/bash -e
 
-set -e
+# Create necessary directories
+mkdir -p /var/www/html/{ipxe,k8s}
+mkdir -p /var/www/html/k8s/manifests
+mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
+mkdir -p /var/tftpboot /root/bin
 
 K8SVersion=1.5.2
 CoreOSInstallationVersion=1235.6.0
@@ -67,7 +71,30 @@ EOF
   sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/tftpboot/pxelinux.cfg/by_mac.tpl
   sed -i "s/RouterIP/$RouterIP/g" ${WebDir}/cloud-configs/template/*
 
+  # gather kubernetes manifests
+  dir=var/www/html/k8s
+  repositoies=(https://github.com/jaohaohsuan/heketi-kubernetes-deploy,heketi-kubernetes-deploy)
 
+  lastPwd=`pwd`
+  for i in $repositoies; do
+    IFS=","; set $i;
+    local dir=$dir/$2
+    local url=$1
+    if [ -d "$dir/.git" ]; then
+      cd $dir
+      git pull
+      cd $lastPwd
+    else
+      git clone $url $dir
+    fi
+    cp -r $dir/manifests /var/www/html/k8s
+  done
+
+  # tar all kubernetes manifests
+  lastPwd=`pwd`
+  cd /var/www/html/k8s
+  tar -zcvf /var/www/html/k8s/manifests.tar.gz manifests
+  cd $lastPwd
 }
 
 if [ "$1" == "-s" ]; then
@@ -81,10 +108,6 @@ docker pull nginx:stable-alpine
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
-# Create necessary directories
-mkdir -p /var/www/html/{ipxe,k8s}
-mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
-mkdir -p /var/tftpboot /root/bin
 
 # Add docker repository and install docker
 if ! apt-cache policy | grep -q "apt.dockerproject.org"; then
