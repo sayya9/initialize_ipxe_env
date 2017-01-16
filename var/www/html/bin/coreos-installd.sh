@@ -21,18 +21,13 @@ rm -rf /opt/ActivePython-2.7.10.12-linux-x86_64.tar.gz /opt/ActivePython-2.7.10.
 curl -o /opt/bin/tmux http://iPXE_Server_IP/soft/tmux
 chmod +x /opt/bin/tmux
 
-# Install bootkube
-#wget -q -N -P /opt/bin http://iPXE_Server_IP/soft/bootkube
-#chmod +x /opt/bin/bootkube
-
-# Fetch bootkube asset
-#wget -q -N -P /root http://iPXE_Server_IP/k8s/asset.tar
+# Download vim of newer version
+curl -Lsk http://iPXE_Server_IP/soft/vim.tgz | tar -zxC /opt
+curl -Lsk http://iPXE_Server_IP/soft/vim-runtime.tar.gz | tar -zxC /opt/vim
+# curl -o /opt/vim/share/defaults.vim http://iPXE_Server_IP/misc/vimrc.txt
 
 # Fetch rkt images
 #rkt fetch --insecure-options=all http://iPXE_Server_IP/images/rkt/hyperkube/vK8SVersion_coreos.0/hyperkube.aci
-
-# Install kubectl on CoreOS
-#docker run --rm  -v /opt/bin:/tmp/bin gcr.io/google_containers/hyperkube-amd64:vK8SVersion /bin/sh -c "cp /hyperkube /tmp/bin" && ln -s /opt/bin/hyperkube /opt/bin/kubectl
 
 # Download bash completion
 mkdir -p /root/downloads
@@ -49,11 +44,8 @@ done
 # TODO://henryrao should change to ENV
 docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/* /opt/"
 
-# Download vim of newer version
-curl -Lsk http://iPXE_Server_IP/soft/vim.tgz | tar -zxC /opt
-curl -Lsk http://iPXE_Server_IP/soft/vim-runtime.tar.gz | tar -zxC /opt/vim
-# curl -o /opt/vim/share/defaults.vim http://iPXE_Server_IP/misc/vimrc.txt
-
+# cp kubernetes manifests
+curl -Lsk http://iPXE_Server_IP/k8s/manifests.tar.gz | tar -zxC /etc/kubernetes
 
 # Touch file
 touch /.check_coreos-installd.service
