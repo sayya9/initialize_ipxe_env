@@ -45,7 +45,8 @@ done
 docker run --rm -v /opt:/opt henryrao/kubeadm:vK8SVersion sh -c "cp -u -r /out/* /opt/"
 
 # cp kubernetes manifests
-curl -Lsk http://iPXE_Server_IP/k8s/manifests.tar.gz | tar -zxC /etc/kubernetes
+mkdir -p /srv/asset
+curl -Lsk http://iPXE_Server_IP/k8s/manifests.tar.gz | tar -zxC /srv/asset
 
 # Touch file
 touch /.check_coreos-installd.service

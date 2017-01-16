@@ -6,11 +6,11 @@ mkdir -p /var/www/html/k8s/manifests
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
-K8SVersion=1.5.1
+K8SVersion=1.5.2
 CoreOSInstallationVersion=1235.6.0
-iPXE_Server_IP=192.168.56.90
-RouterIP=192.168.56.1
-ethX=eth1
+iPXE_Server_IP=192.168.2.110
+RouterIP=192.168.2.1
+ethX=br0
 PrepareDir=$PWD
 
 UpdateConf() {
@@ -79,26 +79,27 @@ EOF
   dir=var/www/html/k8s
   repositoies=(https://github.com/jaohaohsuan/heketi-kubernetes-deploy,heketi-kubernetes-deploy)
 
-  lastPwd=`pwd`
+  OrigIFS=$IFS
+  rm -rfv /var/www/html/k8s/manifests/
   for i in $repositoies; do
     IFS=","; set $i;
-    local dir=$dir/$2
     local url=$1
-    if [ -d "$dir/.git" ]; then
-      cd $dir
+    local repo=${dir}/$2
+    if [ -d "${repo}/.git" ]; then
+      cd $repo
       git pull
-      cd $lastPwd
+      cd $PrepareDir
     else
-      git clone $url $dir
+      git clone $url $repo
     fi
-    cp -r $dir/manifests /var/www/html/k8s
+    rsync -avz ${repo}/manifests/ /var/www/html/k8s/manifests/
   done
+  IFS=$OrigIFS
 
   # tar all kubernetes manifests
-  lastPwd=`pwd`
   cd /var/www/html/k8s
   tar -zcvf /var/www/html/k8s/manifests.tar.gz manifests
-  cd $lastPwd
+  cd $PrepareDir
 }
 
 if [ "$1" == "-s" ]; then

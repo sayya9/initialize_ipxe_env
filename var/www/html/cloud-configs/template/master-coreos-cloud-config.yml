@@ -446,6 +446,30 @@ write_files:
         gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
       KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='storagenode=glusterfs,config-heketi=support' --hostname-override=ServerIPAddress"
 
+  - path: /opt/bin/glusterfs-install.sh
+    owner: root
+    permissions: "0744"
+    content: |
+      #!/usr/bin/bash
+      PATH=$PATH:/opt/bin
+      cd /srv/asset/manifests/glusterfs
+
+      # no need to do anything when true heketi is running
+      if kubectl get deployment heketi; then
+        exit 0
+      fi
+
+      until [ $(kubectl get no --no-headers | wc -l) -ge 3 ]
+      do
+        echo "Waiting nodes ready.."
+        sleep 3
+      done
+
+      kubectl apply -f heketi-service-account.yaml
+      kubectl apply -f glusterfs-daemonset.yaml
+      kubectl apply -f deploy-heketi-deployment.yaml
+      kubectl apply -f configure-heketi.yaml
+
   - path: /etc/profile.d/bash_completion.sh
     content: |
       if [ -e "/var/bash-completion/bash_completion" ]; then
@@ -461,6 +485,11 @@ write_files:
     content: |
       PATH=/opt/vim/bin:$PATH
       export VIMRUNTIME=/opt/vim/share
+
+  - path: /root/.vimrc
+    content: |
+      syntax on
+      set tabstop=2 shiftwidth=2 expandtab autoindent
 
   - path: /etc/environment
     content: |
@@ -622,6 +651,21 @@ coreos:
         RemainAfterExit=yes
         ExecStartPre=/opt/bin/kubectl get po
         ExecStart=/usr/bin/bash -c "PATH=$PATH:/opt/bin && kubectl apply -f /srv/asset/manifests/calico.yaml"
+        Restart=always
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: glusterfs-installd.service
+      command: start
+      content: |
+        [Unit]
+        ConditionPathExists=/srv/asset/manifests/glusterfs/deploy-heketi-deployment.yaml
+
+        [Service]
+        RemainAfterExit=yes
+        ExecStart=/opt/bin/glusterfs-install.sh
         Restart=always
         RestartSec=5
 
