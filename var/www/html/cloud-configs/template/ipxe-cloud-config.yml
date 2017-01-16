@@ -1,6 +1,6 @@
 #cloud-config
 
-hostname: HostName
+hostname: InstallationHostname
 
 coreos:
   units:
@@ -9,33 +9,15 @@ coreos:
       content: |
         [Unit]
         Description=ipxe-installd
-        After=network-online.target download-cloud-config.service
-        Requires=network-online.target download-cloud-config.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/usr/bin/coreos-install -d /dev/`ls /sys/block/ | grep -E '(s|v)da'` -c /root/InstallationKind-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion
-
-    - name: download-cloud-config.service
-      command: start
-      content: |
-        [Unit]
-        Requires=network-online.target
         After=network-online.target
-        Description=download-cloud-config.service
+        Requires=network-online.target
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/usr/bin/wget http://iPXE_Server_IP/cloud-configs/InstallationKind-coreos-cloud-config.yml -O /root/InstallationKind-coreos-cloud-config.yml
+        ExecStartPre=/usr/bin/wget http://iPXE_Server_IP/cloud-configs/coreos_stage/InstallationHostname-coreos-cloud-config.yml -O /root/InstallationHostname-coreos-cloud-config.yml
+        ExecStart=/bin/bash -c "/usr/bin/coreos-install -d /dev/`ls /sys/block/ | grep -E '(s|v)da'` -c /root/InstallationHostname-coreos-cloud-config.yml -b http://iPXE_Server_IP/images/coreos/amd64-usr -V CoreOSInstallationVersion"
+        ExecStartPost=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/ipxe-cleand.sh | bash -'
 
-    - name: ipxe-cleand.service
-      command: start
-      content: |
-        [Unit]
-        Description=pxe-cleand
-        Requires=network-online.target ipxe-installd.service
-        After=network-online.target ipxe-installd.service
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/ipxe-cleand.sh | bash -'
+users:
+  - name: core
+    passwd: $6$/neOHTHIzw0y0$dbIFeLluwRKKZ0mrAvLSczcmJ3B3FxE1AD864XUF9GcKmG3YwtXMb2aukEQgSaoIuEuO3zWV7uMtzqkvx43Iz1

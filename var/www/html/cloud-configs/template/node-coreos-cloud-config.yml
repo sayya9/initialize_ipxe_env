@@ -1,6 +1,6 @@
 #cloud-config
 
-hostname: HostName
+hostname: InstallationHostname
 
 # include one or more SSH public keys
 ssh_authorized_keys:
@@ -239,11 +239,11 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: join-k8s.service
+    - name: join-k8s-node.service
       command: start
       content: |
         [Unit]
-        Description=node join k8s
+        Description=join k8s node
         ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
         [Service]

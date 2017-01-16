@@ -2,11 +2,11 @@
 
 set -e
 
-K8SVersion=1.5.2
+K8SVersion=1.5.1
 CoreOSInstallationVersion=1235.6.0
-iPXE_Server_IP=192.168.2.110
-RouterIP=192.168.2.1
-ethX=br0
+iPXE_Server_IP=192.168.56.90
+RouterIP=192.168.56.1
+ethX=eth1
 PrepareDir=$PWD
 
 UpdateConf() {
@@ -16,35 +16,39 @@ UpdateConf() {
   Range2=${iPXE_Server_IP%.*}.190
   Broadcast=${iPXE_Server_IP%.*}.255
 
-  cat > etc/dhcp/dhcpd.conf.tpl << EOF
-  ddns-update-style none;
-  option domain-name "example.org";
-  option domain-name-servers 8.8.8.8;
-  default-lease-time 600;
-  max-lease-time 7200;
-  log-facility local7;
+  cat > etc/dhcp/dhcpd.conf << EOF
+ddns-update-style none;
+option domain-name "example.org";
+option domain-name-servers 8.8.8.8;
+default-lease-time 600;
+max-lease-time 7200;
+log-facility local7;
 
-  subnet $Subnet netmask $Netmask {
-    range $Range1 $Range2;
-    option routers $RouterIP;
-    option broadcast-address $Broadcast;
-    next-server $iPXE_Server_IP;
-    filename = "pxelinux.0";
-  }
+subnet $Subnet netmask $Netmask {
+  range $Range1 $Range2;
+  option routers $RouterIP;
+  option broadcast-address $Broadcast;
+  next-server $iPXE_Server_IP;
+  filename = "pxelinux.0";
+}
 
-  host station {
-        hardware ethernet MACAddress;
-        fixed-address ServerIPAddress;
-  }
 EOF
 
-  cat > /var/www/html/ipxe/boot.ipxe << EOF
+  cat > /var/www/html/ipxe/boot.ipxe.tpl << EOF
 #!ipxe
 
 set base-url http://${iPXE_Server_IP}/images/coreos/amd64-usr/${CoreOSInstallationVersion}
-kernel \${base-url}/vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe-cloud-config.yml coreos.autologin
+kernel \${base-url}/vmlinuz cloud-config-url=http://${iPXE_Server_IP}/cloud-configs/ipxe_stage/InstallationHostname-ipxe-cloud-config.yml coreos.autologin
 initrd \${base-url}/cpio.gz
 boot
+EOF
+
+  cat > /var/tftpboot/pxelinux.cfg/by_mac.tpl << EOF
+timeout 5
+default iPXE
+LABEL iPXE
+KERNEL ipxe.krn
+APPEND dhcp && chain http://iPXE_Server_IP/ipxe/InstallationHostname.ipxe
 EOF
 
   cp -f systemd-conf/* /etc/systemd/system
@@ -133,7 +137,7 @@ sed -i 's/\(hyperkube-amd64:\|kubeadm:\)v[0-9]\+\.[0-9]\+\.[0-9]\+/\1v'$K8SVersi
 set +x
 
 # pull and tar image
-rm /var/www/html/images/docker-list
+true > /var/www/html/images/docker-list
 while read -r line
 do
     img="$line"

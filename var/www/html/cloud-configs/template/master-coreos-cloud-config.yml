@@ -1,6 +1,6 @@
 #cloud-config
 
-hostname: HostName
+hostname: InstallationHostname
 
 # include one or more SSH public keys
 ssh_authorized_keys:
@@ -577,7 +577,7 @@ coreos:
         [Install]
         WantedBy=multi-user.target
 
-    - name: create-kubelet-config.service
+    - name: init-k8s-master.service
       command: start
       content: |
         [Unit]
@@ -604,7 +604,7 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/usr/bin/bash -c \
-            "/opt/bin/kubectl get node HostName -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
+            "/opt/bin/kubectl get node InstallationHostname -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
         ExecStart=/opt/bin/kubectl taint nodes --all dedicated-
         Restart=always
         RestartSec=5

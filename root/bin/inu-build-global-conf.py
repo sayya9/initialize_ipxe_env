@@ -7,22 +7,36 @@ import subprocess
 import shutil
 from optparse import OptionParser
 
-def CheckInstallationKind(InstallationKind):
-    if InstallationKind in ['master', 'node', 'base']:
+def CheckInstallationArgs(InstallationKind, InstallationHostname):
+    if InstallationKind in ['master', 'node', 'base'] and InstallationHostname:
         return True
     else:
-        print('Please make sure your installed kind is one of the list.[master/node/base]')
+        print('Please make sure your installed kind is one of the list[master/node/base] and hostname has been specified.')
+        print('For example: inu-build-global-conf.py -k node -H node1.example.org -c')
+        print('             inu-build-global-conf.py -k node -H node1.example.org -e')
+        print('             inu-build-global-conf.py -k node -H node1.example.org -r')
         exit(1)
 
-def CreateInstllationConf(InstallationKind):
-    ConfDir = '/var/www/html/data'
+def RenderConf(InstallationInfo, src, dst):
+    f = open(src, 'r')
+    o = open(dst, 'w')
+
+    for line in f:
+        for k, v in InstallationInfo.iteritems():
+            line = line.replace(k, v)
+        o.write(line)
+    f.close()
+    o.close()
+
+def CreateInstllationConf(InstallationKind, InstallationHostname):
+    ConfDir = '/var/www/html/data/'
     if not os.path.exists(ConfDir):
         os.makedirs(ConfDir)
 
-    ConfFile = ConfDir + '/' + InstallationKind
+    ConfFile = ConfDir + InstallationHostname
     f = open(ConfFile, 'w')
     f.write('InstallationKind=' + InstallationKind + '\n')
-    f.write('HostName=' + InstallationKind + '\n')
+    f.write('InstallationHostname=' + InstallationHostname + '\n')
     f.write('CoreOSInstallationVersion=1235.6.0' + '\n')
     f.write('ServerIPAddress=your_' + InstallationKind + '_IP_Address' + '\n')
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
@@ -33,18 +47,18 @@ def CreateInstllationConf(InstallationKind):
         f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
     f.close()
 
-def EditInstallationConf(InstallationKind):
-    ConfDir = '/var/www/html/data'
-    ConfFile = ConfDir + '/' + InstallationKind
+def EditInstallationConf(InstallationKind, InstallationHostname):
+    ConfDir = '/var/www/html/data/'
+    ConfFile = ConfDir + InstallationHostname
     if not os.path.isfile(ConfFile):
-        print('Please create' + ' your ' + InstallationKind + ' template file.')
+        print('Please create' + ' your ' + InstallationKind + '[' + InstallationHostname + ']' + ' template file.')
     else:
         cmd = os.environ.get('EDITOR', 'vim') + ' ' + ConfFile
         subprocess.call(cmd, shell = True)
 
-def GetConfInfo(InstallationKind):
+def GetConfInfo(InstallationHostname):
     ConfDir = '/var/www/html/data'
-    ConfFile = ConfDir + '/' + InstallationKind
+    ConfFile = ConfDir + '/' + InstallationHostname
     InstallationInfo = {}
     f = open(ConfFile)
     for line in f:
@@ -52,43 +66,34 @@ def GetConfInfo(InstallationKind):
         InstallationInfo[m.group(1)] = m.group(2)
     return InstallationInfo
 
-def CreatePXEConf(MACAddress):
-    pxelinux_cfg = '/var/tftpboot/pxelinux.cfg'
-    macd = '01-' + MACAddress.lower().replace(':', '-')
-    Template = pxelinux_cfg + '/by_mac.tpl'
-    dst = pxelinux_cfg + '/' + macd
-    cmd = 'cp ' + Template + ' ' + dst
-    subprocess.call(cmd, shell = True)
+def CreatePXEConf(InstallationMACAddress, InstallationInfo):
+    pxelinux_cfg = '/var/tftpboot/pxelinux.cfg/'
+    macd = '01-' + InstallationMACAddress.lower().replace(':', '-')
+    src = pxelinux_cfg + 'by_mac.tpl'
+    dst = pxelinux_cfg + macd
+    RenderConf(InstallationInfo, src, dst)
 
-def CreateiPXECloudConf(InstallationKind, InstallationInfo):
+def CreateBootiPXEConf(InstallationHostname, InstallationInfo):
+    ConfDir = '/var/www/html/ipxe/'
+    src = ConfDir + 'boot.ipxe.tpl'
+    dst = ConfDir + InstallationHostname + '.ipxe'
+    RenderConf(InstallationInfo, src, dst)
+
+def CreateiPXECloudConf(InstallationInfo):
     ConfDir = '/var/www/html/cloud-configs/'
-    ipxeTemplate = ConfDir + 'template/ipxe-cloud-config.yml'
-    dst = ConfDir + 'ipxe-cloud-config.yml'
+    src = ConfDir + 'template/ipxe-cloud-config.yml'
+    if not os.path.exists(ConfDir + 'ipxe_stage'):
+        os.makedirs(ConfDir + 'ipxe_stage')
+    dst = ConfDir + 'ipxe_stage/' + InstallationInfo['InstallationHostname'] + '-ipxe-cloud-config.yml'
+    RenderConf(InstallationInfo, src, dst)
 
-    f = open(ipxeTemplate, 'r')
-    o = open(dst, 'w')
-
-    for line in f:
-        for k, v in InstallationInfo.iteritems():
-            line = line.replace(k, v)
-        o.write(line)
-    f.close()
-    o.close()
-
-def CreateCoreOSCloudConf(InstallationKind, InstallationInfo):
+def CreateCoreOSCloudConf(InstallationInfo):
     ConfDir = '/var/www/html/cloud-configs/'
-    coreosTemplate = ConfDir + 'template/' + InstallationKind + '-coreos-cloud-config.yml'
-    dst = ConfDir + InstallationKind  + '-coreos-cloud-config.yml'
-
-    f = open(coreosTemplate, 'r')
-    o = open(dst, 'w')
-
-    for line in f:
-        for k, v in InstallationInfo.iteritems():
-            line = line.replace(k, v)
-        o.write(line)
-    f.close()
-    o.close()
+    src = ConfDir + 'template/' + InstallationInfo['InstallationKind'] + '-coreos-cloud-config.yml'
+    if not os.path.exists(ConfDir + 'coreos_stage'):
+        os.makedirs(ConfDir + 'coreos_stage')
+    dst = ConfDir + 'coreos_stage/' + InstallationInfo['InstallationHostname'] + '-coreos-cloud-config.yml'
+    RenderConf(InstallationInfo, src, dst)
 
 def CreateK8SConf(InstallationKind, CreateK8SConf):
     ConfDir = '/var/www/html/k8s/'
@@ -139,24 +144,27 @@ def CreateDataPartitionScript(HostName, DataPartition):
 
 def UpdateDHCPServer(InstallationInfo):
     ConfDir = '/etc/dhcp/'
-    dhcpTemplate = ConfDir + 'dhcpd.conf.tpl'
     dst = ConfDir + 'dhcpd.conf'
-
-    f = open(dhcpTemplate, 'r')
-    o = open(dst, 'w')
-
-    for line in f:
-        for k, v in InstallationInfo.iteritems():
-            line = line.replace(k, v)
-        o.write(line)
+    f = open(dst, 'r')
+    for i in f:
+        if re.search(InstallationInfo['MACAddress'], i):
+            cmd = 'systemctl daemon-reload && systemctl restart dhcp'
+            subprocess.call(cmd, shell = True)
+            f.close()
+            return True
 
     f.close()
+    o = open(dst, 'a')
+    o.write('host ' + InstallationInfo['InstallationHostname'] + ' {\n')
+    o.write('  hardware ethernet ' + InstallationInfo['MACAddress'] + ';\n')
+    o.write('  fixed-address ' + InstallationInfo['ServerIPAddress'] + ';\n')
+    o.write('}\n\n')
     o.close()
     cmd = 'systemctl daemon-reload && systemctl restart dhcp'
     subprocess.call(cmd, shell = True)
 
 if __name__ == '__main__':
-    usage = "Usage: %prog [-l] [-k kind] [-c create]"
+    usage = "Usage: %prog [-l] [-H hostname] [-k kind] [-c create]"
     parser = OptionParser(usage = usage)
     parser.add_option("-l", "--list", action = "store_true",
             default = False,
@@ -173,6 +181,9 @@ if __name__ == '__main__':
     parser.add_option("-k", "--kind", type = "string",
             help = "specify client's installation kind [master/node/base]",
             metavar = "type")
+    parser.add_option("-H", "--hostname", type = "string",
+            help = "specify client's hostname",
+            metavar = "type")
     (options, args) = parser.parse_args()
 
     if len(sys.argv) == 1:
@@ -186,14 +197,15 @@ if __name__ == '__main__':
         for i in AllVersion:
             print(i)
         exit(0)
-    elif CheckInstallationKind(options.kind):
+    elif CheckInstallationArgs(options.kind, options.hostname):
         if options.create:
-            CreateInstllationConf(options.kind)
+            CreateInstllationConf(options.kind, options.hostname)
         elif options.edit:
-            EditInstallationConf(options.kind)
+            EditInstallationConf(options.kind, options.hostname)
         elif options.run:
-            InstallationInfo = GetConfInfo(options.kind)
-            CreatePXEConf(InstallationInfo['MACAddress'])
-            CreateiPXECloudConf(options.kind, InstallationInfo)
-            CreateCoreOSCloudConf(options.kind, InstallationInfo)
+            InstallationInfo = GetConfInfo(options.hostname)
+            CreatePXEConf(InstallationInfo['MACAddress'], InstallationInfo)
+            CreateBootiPXEConf(options.hostname, InstallationInfo)
+            CreateiPXECloudConf(InstallationInfo)
+            CreateCoreOSCloudConf(InstallationInfo)
             UpdateDHCPServer(InstallationInfo)
