@@ -459,11 +459,11 @@ write_files:
         exit 0
       fi
 
-      until [ $(kubectl get no --no-headers | wc -l) -ge 3 ]
-      do
-        echo "Waiting nodes ready.."
-        sleep 3
-      done
+      # until [ $(kubectl get no --no-headers | wc -l) -ge 3 ]
+      # do
+      #   echo "Waiting nodes ready.."
+      #   sleep 3
+      # done
 
       kubectl apply -f heketi-service-account.yaml
       kubectl apply -f glusterfs-daemonset.yaml
@@ -670,6 +670,7 @@ coreos:
 
         [Service]
         RemainAfterExit=yes
+        ExecStartPre=/opt/bin/kubectl get po
         ExecStart=/opt/bin/glusterfs-install.sh
         Restart=always
         RestartSec=5
