@@ -19,7 +19,7 @@ write_files:
       etcd:
         endpoints:
         - http://ServerIPAddress:2379
-      kubernetesVersion: v1.5.1
+      kubernetesVersion: K8SVersion
       secrets:
         givenToken: KubernetesToken
   - path: /srv/asset/manifests/calico.yaml
