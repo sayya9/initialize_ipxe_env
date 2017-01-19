@@ -129,6 +129,7 @@ write_files:
     permissions: "0755"
     content: |
       #!/usr/bin/bash -e
+      export KUBE_EDITOR=/opt/vim/bin/vim
       if [ ! -f /opt/bin/hyperkube ]; then
       containerid=`docker ps | grep kubelet | grep -v pause | awk '{print $1}'`
         docker cp "$containerid":/hyperkube /opt/bin/
