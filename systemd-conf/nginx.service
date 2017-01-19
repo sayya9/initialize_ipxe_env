@@ -6,9 +6,9 @@ Requires=docker.service
 [Service]
 TimeoutStartSec=0
 Restart=always
-ExecStartPre=-/usr/bin/docker pull nginx
+ExecStartPre=-/usr/bin/docker pull nginx:stable-alpine
 ExecStartPre=-/usr/bin/docker rm -f %n
-ExecStart=/usr/bin/docker run --rm --name %n --net=host -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx
+ExecStart=/usr/bin/docker run --rm --name %n --net=host -p 80:80 -v /var/www/html:/usr/share/nginx/html nginx:stable-alpine
  
 [Install]
 WantedBy=multi-user.target
