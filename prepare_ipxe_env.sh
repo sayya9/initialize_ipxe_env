@@ -1,17 +1,17 @@
 #!/bin/bash -e
 
+K8SVersion=1.5.2
+CoreOSInstallationVersion=1235.6.0
+iPXE_Server_IP=192.168.1.100
+RouterIP=192.168.1.1
+ethX=br0
+PrepareDir=$PWD
+
 # Create necessary directories
 mkdir -p /var/www/html/{ipxe,k8s}
 mkdir -p /var/www/html/k8s/manifests
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
-
-K8SVersion=1.5.2
-CoreOSInstallationVersion=1235.6.0
-iPXE_Server_IP=192.168.2.110
-RouterIP=192.168.2.1
-ethX=br0
-PrepareDir=$PWD
 
 UpdateConf() {
   Subnet=${iPXE_Server_IP%.*}.0
