@@ -33,7 +33,7 @@ curl -Lsk http://iPXE_Server_IP/soft/vim-runtime.tar.gz | tar -zxC /opt/vim
 # Download bash completion
 mkdir -p /root/downloads
 wget -q -N -P /root/downloads http://iPXE_Server_IP/soft/bash-completion.tgz
-tar zxvf /root/downloads/bash-completion.tgz -C /var
+tar zxvf /root/downloads/bash-completion.tgz -C /var 2> /dev/null
 
 # Download docker necessary images
 for TAR in `curl http://iPXE_Server_IP/images/docker-list`; do
