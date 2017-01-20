@@ -31,7 +31,7 @@ write_files:
         -v /etc/kubernetes:/etc/kubernetes \
         -v /opt/cni:/opt/cni \
         -v /etc/cni:/etc/cni \
-        -v /sys:/sys
+        -v /sys:/sys \
         -e TERM=xterm \
         gcr.io/google_containers/hyperkube-amd64:vK8SVersion"
       KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='storagenode=glusterfs' --hostname-override=ServerIPAddress"
