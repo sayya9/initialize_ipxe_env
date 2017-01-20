@@ -1,2 +1,3 @@
+etc/dhcp/dhcpd.conf
 var/www/html/k8s/
 *.swp
