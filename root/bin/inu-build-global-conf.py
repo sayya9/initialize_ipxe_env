@@ -41,7 +41,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname):
     f.write('ServerIPAddress=your_' + InstallationKind + '_IP_Address' + '\n')
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
-    f.write('K8SVersion=1.5.1'+ '\n')
+    f.write('K8SVersion=1.5.2'+ '\n')
     f.write('DataPartition=disk1_size_GiB,disk2_size_GiB,disk3_size_GiB' + '\n')
     if InstallationKind == 'node':
         f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
