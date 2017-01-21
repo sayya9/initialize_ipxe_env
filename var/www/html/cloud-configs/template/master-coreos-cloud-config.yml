@@ -495,6 +495,12 @@ write_files:
     content: |
       PRIVATEIP=ServerIPAddress
 
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
+      }
+
 coreos:
   etcd2:
     name: etcdserver
@@ -612,8 +618,8 @@ coreos:
 
         [Service]
         RemainAfterExit=yes
-        ExecStartPre=/usr/bin/bash -c \
-            "/opt/bin/kubectl get node InstallationHostname -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
+        ExecStartPre=/bin/bash -c \
+            "/opt/bin/kubectl get node -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
         ExecStart=/opt/bin/kubectl taint nodes --all dedicated-
         Restart=always
         RestartSec=5
