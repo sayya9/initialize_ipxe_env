@@ -42,7 +42,6 @@ def CreateInstllationConf(InstallationKind, InstallationHostname):
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
     f.write('K8SVersion=1.5.2'+ '\n')
-    f.write('DataPartition=disk1_size_GiB,disk2_size_GiB,disk3_size_GiB' + '\n')
     if InstallationKind == 'node':
         f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
     f.close()
@@ -110,37 +109,6 @@ def CreateK8SConf(InstallationKind, CreateK8SConf):
             o.write(line)
         f.close()
         o.close()
-
-def CreateDataPartitionScript(HostName, DataPartition):
-    ConfDir = '/var/www/html/parted/'
-    dst = ConfDir + 'DataDiskParted.sh'
-    if not os.path.exists(ConfDir):
-        os.makedirs(ConfDir)
-    o = open(dst, 'w')
-    o.write('set -e\n\n')
-    o.write('if [ -e "/.check_DataDiskParted.sh" ]; then\n    exit 0\nfi\n')
-    o.write('parted /dev/sdb --script -- mklabel gpt\n')
-    o.write('end=0\n')
-    o.write('for i in ' + DataPartition.replace(',', ' ') + '; do\n')
-    o.write('    start=$end\n')
-    o.write('    end=$[ $start + $i ]\n')
-    o.write('    if [ "$start" == "0" ] && [ "$end" != "-1" ]; then\n')
-    o.write('        parted /dev/sdb --script mkpart primary xfs ${start}% ${end}GB\n')
-    o.write('    elif [ "$start" == "0" ] && [ "$end" == "-1" ]; then\n')
-    o.write('        parted /dev/sdb --script mkpart primary xfs ${start}% -- ${end}\n')
-    o.write('    else\n')
-    o.write('        parted /dev/sdb --script mkpart primary xfs ${start}GB ${end}GB\n')
-    o.write('    fi\n\n')
-    o.write('    if [ "$?" != "0" ]; then\n')
-    o.write('        parted /dev/sdb --script mkpart primary xfs $start -- -1\n')
-    o.write('        exit 1\n')
-    o.write('    fi\n')
-    o.write('done \n\n')
-    o.write('for i in `lsblk -nl | grep "sdb[1-9][0-9]*" | cut -d " " -f 1`; do\n')
-    o.write('    mkfs -t xfs -f /dev/$i\n')
-    o.write('done\n')
-    o.write('touch /.check_DataDiskParted.sh\n')
-    o.close()
 
 def UpdateDHCPServer(InstallationInfo):
     ConfDir = '/etc/dhcp/'

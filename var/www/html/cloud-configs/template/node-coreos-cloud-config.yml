@@ -52,6 +52,12 @@ write_files:
     content: |
       PRIVATEIP=ServerIPAddress
 
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
+      }
+
   - path: /opt/bin/speed
     owner: root
     permissions: "0755"
