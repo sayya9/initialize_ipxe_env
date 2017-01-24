@@ -42,6 +42,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname):
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
     f.write('K8SVersion=1.5.2'+ '\n')
+    f.write('RemoveDataLVM=no'+ '\n')
     if InstallationKind == 'node':
         f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
     f.close()
@@ -110,6 +111,17 @@ def CreateK8SConf(InstallationKind, CreateK8SConf):
         f.close()
         o.close()
 
+def CheckRemoveDataLVM(RemoveDataLVM):
+    if RemoveDataLVM == 'yes':
+        cmd = 'cp -f /var/www/html/special_case/remove_data_lvm.sh /var/www/html/scripts'
+    else:
+        cmd = 'rm -f /var/www/html/scripts/remove_data_lvm.sh || true'
+    subprocess.call(cmd, shell = True)
+
+def TarScripts():
+    cmd = 'cd /var/www/html && tar zcvf /var/www/html/soft/scripts.tgz scripts > /dev/null'
+    subprocess.call(cmd, shell = True)
+
 def UpdateDHCPServer(InstallationInfo):
     ConfDir = '/etc/dhcp/'
     dst = ConfDir + 'dhcpd.conf'
@@ -172,6 +184,8 @@ if __name__ == '__main__':
             EditInstallationConf(options.kind, options.hostname)
         elif options.run:
             InstallationInfo = GetConfInfo(options.hostname)
+            CheckRemoveDataLVM(InstallationInfo['RemoveDataLVM'])
+            TarScripts()
             CreatePXEConf(InstallationInfo['MACAddress'], InstallationInfo)
             CreateBootiPXEConf(options.hostname, InstallationInfo)
             CreateiPXECloudConf(InstallationInfo)

@@ -168,34 +168,21 @@ coreos:
     - name: systemd-networkd.service
       command: restart
 
-    - name: coreos-installd.service
+    - name: prepared.service
       command: start
       content: |
         [Unit]
-        Description=coreos-installd
+        Description=prepare os envirnment
         Requires=network-online.target
         After=network-online.target
-        ConditionPathExists=!/.check_coreos-installd.service
+        ConditionPathExists=!/.check_prepared.service
 
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStart=/bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/coreos-installd.sh | bash -ex'
-
-        [Install]
-        WantedBy=multi-user.target
-
-    # set timezone Asia/Taipei
-    - name: timezone.service
-      command: start
-      content: |
-        [Unit]
-        Description=timezone
-
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        ExecStart=/usr/bin/ln -sf /usr/share/zoneinfo/Asia/Taipei /etc/localtime
+        ExecStartPre=/bin/bash -c "/usr/bin/curl -Lsk http://iPXE_Server_IP/soft/scripts.tgz | tar -mzxC /root"
+        ExecStart=/bin/bash -exc 'for i in `echo /root/scripts/*.sh`; do cat $i | bash -; done'
+        ExecStartPost=/usr/bin/touch /.check_prepared.service
 
         [Install]
         WantedBy=multi-user.target
@@ -204,8 +191,8 @@ coreos:
       command: start
       content: |
         [Unit]
-        Requires=coreos-installd.service
-        After=coreos-installd.service
+        Requires=prepared.service
+        After=prepared.service
 
         [Service]
         EnvironmentFile=/etc/kubelet-docker
@@ -229,7 +216,7 @@ coreos:
 
         [Service]
         Environment=KUBE_HYPERKUBE_IMAGE=gcr.io/google_containers/hyperkube-amd64:vK8SVersion
-        ExecStartPre=/usr/bin/ls /.check_coreos-installd.service
+        ExecStartPre=/usr/bin/ls /.check_prepared.service
         RemainAfterExit=yes
         ExecStart=/opt/bin/kubeadm join --token=KubernetesToken MasterIPAddress --skip-preflight-checks
         ExecStartPost=/usr/bin/bash -c "sleep 10 && mkdir /root/.kube && cp /etc/kubernetes/kubelet.conf /root/.kube/config"

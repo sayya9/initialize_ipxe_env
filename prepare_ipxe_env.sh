@@ -2,9 +2,9 @@
 
 K8SVersion=1.5.2
 CoreOSInstallationVersion=1235.6.0
-iPXE_Server_IP=192.168.1.100
-RouterIP=192.168.1.1
-ethX=br0
+iPXE_Server_IP=192.168.56.90
+RouterIP=192.168.56.1
+ethX=eth1
 PrepareDir=$PWD
 
 # Create necessary directories
@@ -62,16 +62,22 @@ EOF
       systemctl restart $i
   done
 
-  rsync -avz root/bin/ /root/bin/
-  rsync -avz var/www/ /var/www/
+  rsync -avz --delete root/bin/ /root/bin/
+  rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
+  rsync -avz --delete var/www/html/cloud-configs/ /var/www/html/cloud-configs/
+  rsync -avz --delete var/www/html/k8s/ /var/www/html/k8s/
+  rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
+  rsync -avz --delete var/www/html/scripts/ /var/www/html/scripts/
+  rsync -avz --delete var/www/html/soft/ /var/www/html/soft/
+  rsync -avz --delete var/www/html/special_case/ /var/www/html/special_case/
   rsync -avz var/tftpboot/ /var/tftpboot/
   rsync -avz etc/dhcp/ /etc/dhcp/
 
   WebDir=/var/www/html
   sed -i "s/ethX/$ethX/g" /etc/systemd/system/dhcp.service
-  sed -i "s/K8SVersion/$K8SVersion/g" ${WebDir}/bin/*
-  sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/bin/*
-  sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/*
+  sed -i "s/K8SVersion/$K8SVersion/g" ${WebDir}/bin/* ${WebDir}/scripts/*
+  sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/bin/* ${WebDir}/scripts/*
+  sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" ${WebDir}/cloud-configs/template/* 
   sed -i "s/iPXE_Server_IP/$iPXE_Server_IP/g" /var/tftpboot/pxelinux.cfg/by_mac.tpl
   sed -i "s/RouterIP/$RouterIP/g" ${WebDir}/cloud-configs/template/*
 
