@@ -633,7 +633,7 @@ coreos:
         Type=oneshot
         RemainAfterExit=yes
         ExecStartPre=/bin/bash -c "/usr/bin/curl -Lsk http://iPXE_Server_IP/soft/scripts.tgz | tar -mzxC /root"
-        ExecStart=/bin/bash -exc 'for i in `echo /root/scripts/*.sh`; do cat $i | bash -; done'
+        ExecStart=/bin/bash -exc 'for i in `echo /root/scripts/*.sh`; do cat $i | bash -xe -; done'
         ExecStartPost=/usr/bin/touch /.check_prepared.service
 
         [Install]
