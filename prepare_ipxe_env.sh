@@ -66,8 +66,8 @@ EOF
   rsync -avz --delete var/www/html/cloud-configs/ /var/www/html/cloud-configs/
   rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
   rsync -avz --delete var/www/html/scripts/ /var/www/html/scripts/
-  rsync -avz --delete var/www/html/soft/ /var/www/html/soft/
   rsync -avz --delete var/www/html/special_case/ /var/www/html/special_case/
+  rsync -avz var/www/html/soft/ /var/www/html/soft/
   rsync -avz var/tftpboot/ /var/tftpboot/
   rsync -avz etc/dhcp/ /etc/dhcp/
 
@@ -117,7 +117,6 @@ docker pull nginx:stable-alpine
 docker pull cpuguy83/nfs-server
 docker pull pghalliday/tftp
 
-
 # Add docker repository and install docker
 if ! apt-cache policy | grep -q "apt.dockerproject.org"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
@@ -126,13 +125,6 @@ fi
 apt-key update
 apt-get update
 apt-get install -y docker-engine
-
-# Download rkt's hyperkube image
-# if ! [ -d /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0 ]; then
-#     mkdir -p /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0
-# fi
-# wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci
-# wget -c https://quay.io/c1/aci/quay.io/coreos/hyperkube/v${K8SVersion}_coreos.0/aci.asc/linux/amd64/ -O /var/www/html/images/rkt/hyperkube/v${K8SVersion}_coreos.0/hyperkube.aci.asc
 
 # Download coreos_production_iso_image.iso to get vmlinuz, cpio.gz and pxelinux.0
 wget -c -P /root https://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
@@ -151,8 +143,6 @@ umount /mnt
 wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
 wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
 wget -c -P /var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.10.12/ActivePython-2.7.10.12-linux-x86_64.tar.gz
-# wget -c -P /var/www/html/soft https://dl.k8s.io/network-plugins/cni-amd64-07a8a28637e97b22eb8dfe710eeae1344f69d16e.tar.gz
-# wget -c -P /var/www/html/soft https://storage.googleapis.com/kubernetes-release-dev/ci-cross/v1.5.0-alpha.2.421+a6bea3d79b8bba/bin/linux/amd64/kubeadm
 
 # build kubeadm
 cd kubeadm
