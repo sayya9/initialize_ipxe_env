@@ -501,6 +501,90 @@ write_files:
         "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
       }
 
+  - path: /srv/asset/manifests/registry.yaml
+    content: |
+      kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: kube-registry-pvc
+        namespace: kube-system
+        labels:
+          kubernetes.io/cluster-service: "true"
+        annotations:
+          volume.beta.kubernetes.io/storage-class: "default"
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 80Gi
+  
+      ---
+      apiVersion: v1
+      kind: ReplicationController
+      metadata:
+        name: kube-registry
+        namespace: kube-system
+        labels:
+          k8s-app: kube-registry
+          version: v0
+          kubernetes.io/cluster-service: "true"
+      spec:
+        replicas: 1
+        selector:
+          k8s-app: kube-registry
+          version: v0
+        template:
+          metadata:
+            labels:
+              k8s-app: kube-registry
+              version: v0
+              kubernetes.io/cluster-service: "true"
+          spec:
+            containers:
+            - name: registry
+              image: registry:2
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 100Mi
+              env:
+              - name: REGISTRY_HTTP_ADDR
+                value: :5000
+              - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+                value: /var/lib/registry
+              volumeMounts:
+              - name: is
+                mountPath: /var/lib/registry
+              ports:
+              - containerPort: 5000
+                name: registry
+                protocol: TCP
+            volumes:
+            - name: is
+              persistentVolumeClaim:
+                claimName: kube-registry-pvc
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kube-registry
+        namespace: kube-system
+        labels:
+          k8s-app: kube-registry
+          kubernetes.io/cluster-service: "true"
+          kubernetes.io/name: "KubeRegistry"
+      spec:
+        selector:
+          k8s-app: kube-registry
+        type: NodePort
+        ports:
+        - name: registry
+          port: 5000
+          protocol: TCP
+          nodePort: 32767
+
 coreos:
   etcd2:
     name: etcdserver

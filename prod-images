@@ -12,3 +12,4 @@ gcr.io/google_containers/kube-discovery-amd64:1.0
 henryrao/kubeadm:v1.5.2
 gluster/gluster-centos:latest
 heketi/heketi:dev
+registry:2

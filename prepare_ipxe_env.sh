@@ -8,8 +8,7 @@ ethX=eth1
 PrepareDir=$PWD
 
 # Create necessary directories
-mkdir -p /var/www/html/{ipxe,k8s}
-mkdir -p /var/www/html/k8s/manifests
+mkdir -p /var/www/html/{ipxe,k8s/manifests}
 mkdir -p /var/www/html/images/{docker,coreos/amd64-usr/${CoreOSInstallationVersion}} /etc/dhcp/template
 mkdir -p /var/tftpboot /root/bin
 
@@ -65,7 +64,6 @@ EOF
   rsync -avz --delete root/bin/ /root/bin/
   rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
   rsync -avz --delete var/www/html/cloud-configs/ /var/www/html/cloud-configs/
-  rsync -avz --delete var/www/html/k8s/ /var/www/html/k8s/
   rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
   rsync -avz --delete var/www/html/scripts/ /var/www/html/scripts/
   rsync -avz --delete var/www/html/soft/ /var/www/html/soft/
