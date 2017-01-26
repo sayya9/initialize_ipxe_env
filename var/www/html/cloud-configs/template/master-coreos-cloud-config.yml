@@ -517,7 +517,7 @@ write_files:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 5Gi
+            storage: 80Gi
   
       ---
       apiVersion: v1
