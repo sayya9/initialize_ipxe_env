@@ -517,7 +517,7 @@ write_files:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 80Gi
+            storage: 5Gi
   
       ---
       apiVersion: v1
@@ -624,7 +624,7 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=prepare os envirnment
+        Description=Prepare os envirnment
         Requires=network-online.target
         After=network-online.target
         ConditionPathExists=!/.check_prepared.service
@@ -667,7 +667,7 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=Create kubelet necessary configuration file (http://kubernetes.io/docs/admin/kubeadm/)
+        Description=Initialize k8s mater (http://kubernetes.io/docs/admin/kubeadm/)
         ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
         [Service]
@@ -685,7 +685,7 @@ coreos:
       command: start
       content: |
         [Unit]
-        Description=taint master to K8S
+        Description=Taint master to K8S
 
         [Service]
         RemainAfterExit=yes
@@ -724,6 +724,22 @@ coreos:
         RemainAfterExit=yes
         ExecStartPre=/opt/bin/kubectl get po
         ExecStart=/opt/bin/glusterfs-install.sh
+        Restart=always
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target
+
+    - name: registry-installd.service
+      command: start
+      content: |
+        [Unit]
+        Description=Initialize docker registry
+
+        [Service]
+        RemainAfterExit=yes
+        ExecStartPre=/bin/bash -c "/opt/bin/kubectl get storageclass default && ! /opt/bin/kubectl get po -n kube-system | grep kube-registry"
+        ExecStart=/opt/bin/kubectl apply -f /srv/asset/manifests/registry.yaml
         Restart=always
         RestartSec=5
 
