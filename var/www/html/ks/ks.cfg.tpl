@@ -21,7 +21,7 @@ lang en_US.UTF-8
 selinux disabled
 
 # Network information
-network  --bootproto=dhcp --device=enp0s3 --ipv6=auto --activate
+network  --bootproto=dhcp --device=enp0s3 --ipv6=auto --activate --hostname InstallationHostname
 
 # Root password
 rootpw --iscrypted $6$Iu434Je.N7BcmXGj$uhFrG/mSWe8OjB0bB3n3cdw85gxcFh8NZ6TDN.kQmvs.Qg8sD5CQylmiVQQ3aB1OzBVl0MvILZf8GoKT4ddCy.

@@ -607,8 +607,8 @@ coreos:
 
         [Network]
         Address=ServerIPAddress/24
-        Gateway=RouterIP
-        DNS=RouterIP
+        Gateway=GatewayIP
+        DNS=GatewayIP
 
     - name: down-interfaces.service
       command: start
@@ -632,7 +632,7 @@ coreos:
         [Service]
         Type=oneshot
         RemainAfterExit=yes
-        ExecStartPre=/bin/bash -c "/usr/bin/curl -Lsk http://iPXE_Server_IP/soft/scripts.tgz | tar -mzxC /root"
+        ExecStartPre=/bin/bash -c "/usr/bin/curl -Lsk http://iPXE_Server_IP/soft/scripts.InstallationHostname.tgz | tar -mzxC /root"
         ExecStart=/bin/bash -exc 'for i in `echo /root/scripts/*.sh`; do cat $i | bash -xe -; done'
         ExecStartPost=/usr/bin/touch /.check_prepared.service
 
