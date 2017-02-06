@@ -1,8 +1,9 @@
 #!/bin/bash -ex
 
 K8SVersion=1.5.2
-CoreOSInstallationVersion=1235.6.0
-CentOSInstallationVersion=None
+#CoreOSInstallationVersion=1235.6.0
+CoreOSInstallationVersion=None
+CentOSInstallationVersion=7
 iPXE_Server_IP=192.168.56.90
 GatewayIP=192.168.56.1
 ethX=eth1
@@ -98,7 +99,6 @@ EOF
     rsync -avz var/www/html/ks/ /var/www/html/ks/
     rsync -avz var/www/html/soft/ /var/www/html/soft/
     rsync -avz var/tftpboot/ /var/tftpboot/
-    rsync -avz etc/dhcp/ /etc/dhcp/
 
     WebDir=/var/www/html
     declare -A dic
