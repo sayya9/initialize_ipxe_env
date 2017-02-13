@@ -37,22 +37,34 @@ write_files:
       KUBELET_ARGS="--network-plugin=cni --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.96.0.10 --cluster-domain=cluster.local --kubeconfig=/etc/kubernetes/kubelet.conf --require-kubeconfig=true --allow-privileged=true --node-labels='storagenode=glusterfs' --hostname-override=ServerIPAddress"
 
   - path: /etc/profile.d/bash_completion.sh
+    owner: root
+    permissions: "0755"
     content: |
+      if ! type kubectl > /dev/null 2>&1; then
+          export PATH=/opt/bin:${PATH}
+      fi
+
       if [ -e "/var/bash-completion/bash_completion" ]; then
           . /var/bash-completion/bash_completion
           . <(kubectl completion bash)
       fi
 
   - path: /etc/profile.d/vim.sh
+    owner: root
+    permissions: "0755"
     content: |
       PATH=/opt/vim/bin:$PATH
       export VIMRUNTIME=/opt/vim/share
 
   - path: /etc/environment
+    owner: root
+    permissions: "0644"
     content: |
       PRIVATEIP=ServerIPAddress
 
   - path: /etc/docker/daemon.json
+    owner: root
+    permissions: "0644"
     content: |
       {
         "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
@@ -139,9 +151,9 @@ write_files:
 
 coreos:
   etcd2:
-    proxy: on
-    listen-client-urls: http://localhost:2379
-    initial-cluster: etcdserver=http://MasterIPAddress:2380
+    proxy: "on"
+    listen-client-urls: "http://localhost:2379"
+    initial-cluster: "etcdserver=http://MasterIPAddress:2380"
   units:
     - name: etcd2.service
       command: start
@@ -231,14 +243,15 @@ coreos:
       content: |
         [Unit]
         Description=Hosts Manager
+        Requires=etcd2.service
         After=etcd2.service
 
         [Service]
         EnvironmentFile=/etc/environment
         Restart=always
-        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPre=/bin/bash -c "etcdctl ls /hosts || etcdctl mkdir /hosts"
         ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
-        ExecStart=/usr/bin/bash -c 'while true; do \
+        ExecStart=/bin/bash -c 'while true; do \
             echo "127.0.0.1 localhost" > /etc/hosts; \
             for i in $(etcdctl ls /hosts); do \
                 echo $(etcdctl get $i) $(echo $i | cut -c 8-); \

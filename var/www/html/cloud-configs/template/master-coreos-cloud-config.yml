@@ -454,34 +454,40 @@ write_files:
         exit 0
       fi
 
-      # until [ $(kubectl get no --no-headers | wc -l) -ge 3 ]
-      # do
-      #   echo "Waiting nodes ready.."
-      #   sleep 3
-      # done
-
       kubectl apply -f heketi-service-account.yaml
       kubectl apply -f glusterfs-daemonset.yaml
       kubectl apply -f deploy-heketi-deployment.yaml
       kubectl apply -f configure-heketi.yaml
 
   - path: /etc/profile.d/bash_completion.sh
+    owner: root
+    permissions: "0755"
     content: |
+      if ! type kubectl > /dev/null 2>&1; then
+          export PATH=/opt/bin:${PATH}
+      fi
+      
       if [ -e "/var/bash-completion/bash_completion" ]; then
           . /var/bash-completion/bash_completion
           . <(kubectl completion bash)
       fi
 
   - path: /etc/environment
+    owner: root
+    permissions: "0644"
     content: |
       PRIVATEIP=ServerIPAddress
 
   - path: /etc/profile.d/vim.sh
+    owner: root
+    permissions: "0755"
     content: |
       PATH=/opt/vim/bin:$PATH
       export VIMRUNTIME=/opt/vim/share
 
   - path: /root/.vimrc
+    owner: root
+    permissions: "0644"
     content: |
       filetype plugin indent on
       syntax on
@@ -491,17 +497,17 @@ write_files:
       set listchars=tab:>.,trail:~,extends:>,precedes:<
       set list
 
-  - path: /etc/environment
-    content: |
-      PRIVATEIP=ServerIPAddress
-
   - path: /etc/docker/daemon.json
+    owner: root
+    permissions: "0644"
     content: |
       {
         "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
       }
 
   - path: /srv/asset/manifests/registry.yaml
+    owner: root
+    permissions: "0644"
     content: |
       kind: PersistentVolumeClaim
       apiVersion: v1
@@ -718,7 +724,9 @@ coreos:
       command: start
       content: |
         [Unit]
-        ConditionPathExists=/srv/asset/manifests/glusterfs/deploy-heketi-deployment.yaml
+        Requires=prepared.service
+        After=prepared.service
+        Description=Enable gluster heketi
 
         [Service]
         RemainAfterExit=yes
@@ -751,14 +759,15 @@ coreos:
       content: |
         [Unit]
         Description=Hosts Manager
+        Requires=etcd2.service
         After=etcd2.service
 
         [Service]
         EnvironmentFile=/etc/environment
         Restart=always
-        ExecStartPre=-/usr/bin/etcdctl mkdir /hosts
+        ExecStartPre=/bin/bash -c "etcdctl ls /hosts || etcdctl mkdir /hosts"
         ExecStartPost=/usr/bin/etcdctl set /hosts/%H $PRIVATEIP
-        ExecStart=/usr/bin/bash -c 'while true; do \
+        ExecStart=/bin/bash -c 'while true; do \
             echo "127.0.0.1 localhost" > /etc/hosts; \
             for i in $(etcdctl ls /hosts); do \
                 echo $(etcdctl get $i) $(echo $i | cut -c 8-); \

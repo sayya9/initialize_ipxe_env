@@ -1,10 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import os
 import re
 import subprocess
 import shutil
+import yaml
+import tarfile
 from optparse import OptionParser
 
 def CheckInstallationArgs(InstallationKind, InstallationHostname):
@@ -22,7 +24,7 @@ def RenderConf(InstallationInfo, src, dst):
     o = open(dst, 'w')
 
     for line in f:
-        for k, v in InstallationInfo.iteritems():
+        for k, v in InstallationInfo.items():
             line = line.replace(k, v)
         o.write(line)
     f.close()
@@ -119,6 +121,54 @@ def CreateKickstartConf(InstallationInfo):
     dst = ConfDir + InstallationInfo['InstallationHostname'] + '.cfg'
     RenderConf(InstallationInfo, src, dst)
 
+def CloudConfigToBash(InstallationInfo):
+    cloud_config = open('/var/www/html/cloud-configs/coreos_stage/' + InstallationInfo['InstallationHostname'] + '-coreos-cloud-config.yml')
+    x = yaml.load(cloud_config)
+    srcDir = '/var/www/html/data/cloud-config_to_bash'
+
+    if os.path.exists(srcDir):
+        shutil.rmtree(srcDir)
+
+    for i in range(len(x['write_files'])):
+        path = x['write_files'][i]['path']
+        content = x['write_files'][i]['content']
+        permissions = x['write_files'][i]['permissions']
+
+        if not os.path.exists(srcDir + os.path.dirname(path)):
+            os.makedirs(srcDir + os.path.dirname(path))
+        w = open(srcDir + path, 'w')
+        w.write(content)
+        w.close()
+        n = int(permissions, 8)
+        os.chmod(srcDir + path, n)
+
+    IgnorantList = ['systemd-networkd.service', '00-eth0.network', 'down-interfaces.service', 'etcd2.service']
+    if not os.path.exists(srcDir + '/etc/systemd/system'):
+        os.makedirs(srcDir + '/etc/systemd/system')
+
+    for i in range(len(x['coreos']['units'])):
+        name = x['coreos']['units'][i]['name']
+        if name not in IgnorantList:
+            content = x['coreos']['units'][i]['content']
+            w = open(srcDir + '/etc/systemd/system/' + name, 'w')
+            w.write(content)
+            w.close()
+
+    if not os.path.exists(srcDir + '/root'):
+        os.makedirs(srcDir + '/root')
+    w = open(srcDir + '/root/etcd_args.txt', 'w')
+    for k, v in x['coreos']['etcd2'].items():
+        w.write('--' + k + ' ' + v + ' ')
+    w.close()
+
+    dstDir = '/var/www/html/cloud-config_to_bash/'
+    if not os.path.exists(dstDir):
+        os.makedirs(dstDir)
+
+    tar = tarfile.open(dstDir + InstallationInfo['InstallationHostname'] + '-cloud-config_to_bash.tgz', "w:gz")
+    tar.add(srcDir, arcname=os.path.basename(srcDir))
+    tar.close()
+
 def UpdateDHCPServer(InstallationInfo):
     ConfDir = '/etc/dhcp/'
     dst = ConfDir + 'dhcpd.conf'
@@ -201,6 +251,7 @@ if __name__ == '__main__':
                 CreateCoreOSCloudConf(InstallationInfo)
                 if 'CentOSInstallationVersion' in InstallationInfo:
                     CreateKickstartConf(InstallationInfo)
+                    CloudConfigToBash(InstallationInfo)
                 TarScripts(InstallationInfo)
                 UpdateDHCPServer(InstallationInfo)
             else:

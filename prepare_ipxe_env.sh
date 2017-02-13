@@ -1,9 +1,10 @@
 #!/bin/bash -ex
 
 K8SVersion=1.5.2
-#CoreOSInstallationVersion=1235.6.0
-CoreOSInstallationVersion=None
+CoreOSInstallationVersion=1235.6.0
 CentOSInstallationVersion=7
+DeployCoreOS=yes
+DeployCentOS=no
 iPXE_Server_IP=192.168.56.90
 GatewayIP=192.168.56.1
 ethX=eth1
@@ -24,6 +25,33 @@ CoreOSEnv() {
     # Download necessary files
     wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
     wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
+}
+
+CentOSEnv() {
+    # Download CentOS iso
+    curl http://isoredirect.centos.org/centos/${CentOSInstallationVersion}/isos/x86_64/ > /tmp/tempfile.txt
+    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | head -n 1`
+    curl $CentOSURL > /tmp/tempfile.txt
+    FileName=`cat /tmp/tempfile.txt | sed -n '/CentOS-.*-x86_64-DVD.*.iso/s/.*\(CentOS-.*-x86_64-DVD.*.iso\).*/\1/p'`
+    wget -c -P /root ${CentOSURL}${FileName}
+
+    # Mount iso to base repo directory
+    repoParentDir=/var/www/html/repo/centos
+    repoBaseDir=${repoParentDir}/${CentOSInstallationVersion}/os/x86_64
+    mkdir -p $repoBaseDir
+    if ! grep -q $repoBaseDir /proc/mounts; then
+        mount /root/${FileName} $repoBaseDir
+    fi
+
+    # Download updates and docker repo rpm packages
+    repoUpdatesDir=${repoParentDir}/${CentOSInstallationVersion}/updates/x86_64
+    repoDockerDir=${repoParentDir}/${CentOSInstallationVersion}/dockerrepo
+    mkdir -p $repoUpdatesDir $repoDockerDir
+    docker pull centos:7
+    docker run -v ${repoUpdatesDir}:/tmp/updates/x86_64 -v ${repoDockerDir}:/tmp/dockerrepo -v ${PrepareDir}/yum/docker.repo:/etc/yum.repos.d/docker.repo --rm -it centos:7 bash -c "reposync -r updates -p /tmp/updates/x86_64 --norepopath && reposync -r dockerrepo -p /tmp/dockerrepo --norepopath && yum install -y createrepo && createrepo -v /tmp/updates/x86_64 && createrepo -v /tmp/dockerrepo"
+
+    # Download etcd rpm
+    wget -N -P /var/www/html/soft ${CentOSURL%isos/*/}extras/x86_64/Packages/etcd-2.3.7-4.el7.x86_64.rpm
 }
 
 UpdateConf() {
@@ -90,7 +118,6 @@ EOF
         systemctl restart $i
     done
 
-    rsync -avz root/bin/ /root/bin/
     rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
     rsync -avz --delete var/www/html/cloud-configs/ /var/www/html/cloud-configs/
     rsync -avz --delete var/www/html/bin/ /var/www/html/bin/
@@ -138,32 +165,17 @@ EOF
     cd $PrepareDir
 }
 
-CentOSEnv() {
-    # Download CentOS minimal iso
-    curl http://isoredirect.centos.org/centos/${CentOSInstallationVersion}/isos/x86_64/ > /tmp/tempfile.txt
-    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | head -n 1`
-    curl $CentOSURL > /tmp/tempfile.txt
-    FileName=`cat /tmp/tempfile.txt | sed -n '/CentOS-.*-x86_64-Minimal-.*.iso/s/.*\(CentOS-.*-x86_64-Minimal-.*.iso\).*/\1/p'`
-    wget -c -P /root ${CentOSURL}${FileName}
-
-    # Mount iso to the specified directory
-    repoDir=/var/www/html/repo/centos/${CentOSInstallationVersion}/os/x86_64
-    mkdir -p $repoDir
-    if ! grep -q $repoDir /proc/mounts; then
-        mount /root/${FileName} $repoDir
-    fi
-}
 
 if [ "$1" == "-s" ]; then
     UpdateConf
     exit 0
 fi
 
-if [ "$CoreOSInstallationVersion" != "None" ]; then
+if [ "$DeployCoreOS" == "yes" ]; then
     CoreOSEnv
 fi
 
-if [ "$CentOSInstallationVersion" != "None" ]; then
+if [ "$DeployCentOS" == "yes" ]; then
     CentOSEnv
 fi
 
