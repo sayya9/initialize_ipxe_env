@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-K8SVersion=1.5.2
+K8SVersion=1.5.3
 CoreOSInstallationVersion=1235.6.0
 CentOSInstallationVersion=7
 DeployCoreOS=yes
@@ -150,12 +150,15 @@ EOF
       local repo=${dir}/$2
       if [ -d "${repo}/.git" ]; then
         cd $repo
-        git pull
-        cd $PrepareDir
+        git checkout master
+        git pull --tags
       else
         git clone $url $repo
+        cd $repo
       fi
-      rsync -avz ${repo}/manifests/ /var/www/html/k8s/manifests/
+      git checkout tags/v$K8SVersion
+      cd $PrepareDir
+      rsync -avz --exclude='.git' ${repo}/manifests/ /var/www/html/k8s/manifests/
     done
     IFS=$OrigIFS
 

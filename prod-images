@@ -7,9 +7,9 @@ quay.io/calico/node:v1.0.0
 calico/cni:v1.5.5
 calico/ctl:v1.0.0
 gcr.io/google_containers/etcd:2.2.1
-gcr.io/google_containers/hyperkube-amd64:v1.5.2
+gcr.io/google_containers/hyperkube-amd64:v1.5.3
 gcr.io/google_containers/kube-discovery-amd64:1.0
-henryrao/kubeadm:v1.5.2
+henryrao/kubeadm:v1.5.3
 gluster/gluster-centos:latest
 heketi/heketi:dev
 registry:2

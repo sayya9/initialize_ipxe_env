@@ -36,7 +36,7 @@ write_files:
       data:
         # The location of your etcd cluster.  This uses the Service clusterIP
         # defined below.
-        etcd_endpoints: "http://10.96.232.136:6666"
+        etcd_endpoints: "http://ServerIPAddress:2379"
 
         # True enables BGP networking, false tells Calico to enforce
         # policy only, using native networking.
@@ -73,72 +73,6 @@ write_files:
               ipip:
                 enabled: true
               nat-outgoing: true
-
-      ---
-
-      # This manifest installs the Calico etcd on the kubeadm master.  This uses a DaemonSet
-      # to force it to run on the master even when the master isn't schedulable, and uses
-      # nodeSelector to ensure it only runs on the master.
-      apiVersion: extensions/v1beta1
-      kind: DaemonSet
-      metadata:
-        name: calico-etcd
-        namespace: kube-system
-        labels:
-          k8s-app: calico-etcd
-      spec:
-        template:
-          metadata:
-            labels:
-              k8s-app: calico-etcd
-            annotations:
-              scheduler.alpha.kubernetes.io/critical-pod: ''
-              scheduler.alpha.kubernetes.io/tolerations: |
-                [{"key": "dedicated", "value": "master", "effect": "NoSchedule" },
-                 {"key":"CriticalAddonsOnly", "operator":"Exists"}]
-          spec:
-            # Only run this pod on the master.
-            nodeSelector:
-              kubeadm.alpha.kubernetes.io/role: master
-            hostNetwork: true
-            containers:
-              - name: calico-etcd
-                image: gcr.io/google_containers/etcd:2.2.1
-                env:
-                  - name: CALICO_ETCD_IP
-                    valueFrom:
-                      fieldRef:
-                        fieldPath: status.podIP
-                command: ["/bin/sh","-c"]
-                args: ["/usr/local/bin/etcd --name=calico --data-dir=/var/etcd/calico-data --advertise-client-urls=http://$CALICO_ETCD_IP:6666 --listen-client-urls=http://0.0.0.0:6666 --listen-peer-urls=http://0.0.0.0:6667"]
-                volumeMounts:
-                  - name: var-etcd
-                    mountPath: /var/etcd
-            volumes:
-              - name: var-etcd
-                hostPath:
-                  path: /var/etcd
-
-      ---
-
-      # This manfiest installs the Service which gets traffic to the Calico
-      # etcd.
-      apiVersion: v1
-      kind: Service
-      metadata:
-        labels:
-          k8s-app: calico-etcd
-        name: calico-etcd
-        namespace: kube-system
-      spec:
-        # Select the calico-etcd pod running on the master.
-        selector:
-          k8s-app: calico-etcd
-        # This ClusterIP needs to be known in advance, since we cannot rely
-        # on DNS to get access to etcd.
-        clusterIP: 10.96.232.136
-        ports:
-          - port: 6666
 
       ---
 
