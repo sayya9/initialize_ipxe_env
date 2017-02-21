@@ -48,6 +48,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
     f.write('K8SVersion=1.5.2'+ '\n')
     f.write('RemoveDataLVM=no'+ '\n')
+    f.write('UseHostnameOverride=yes'+ '\n')
     if InstallationKind == 'node':
         f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
     f.close()
@@ -244,6 +245,10 @@ if __name__ == '__main__':
         elif options.run:
             if options.hostname:
                 InstallationInfo = GetConfInfo(options.hostname)
+                if InstallationInfo['UseHostnameOverride'] == 'yes':
+                    InstallationInfo['HostnameOverride'] = InstallationInfo['ServerIPAddress']
+                elif InstallationInfo['UseHostnameOverride'] == 'no':
+                    InstallationInfo['HostnameOverride'] = InstallationInfo['InstallationHostname']
                 CheckRemoveDataLVM(InstallationInfo['RemoveDataLVM'])
                 CreatePXEConf(InstallationInfo)
                 CreateBootiPXEConf(InstallationInfo)

@@ -630,8 +630,8 @@ coreos:
         [Service]
         RemainAfterExit=yes
         ExecStartPre=/bin/bash -c \
-            "/opt/bin/kubectl get node -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
-        ExecStart=/opt/bin/kubectl taint nodes --all dedicated-
+            "/opt/bin/kubectl get node HostnameOverride -o yaml | grep 'scheduler.alpha.kubernetes.io/taints:.*NoSchedule'"
+        ExecStart=/opt/bin/kubectl taint nodes HostnameOverride --all dedicated-
         Restart=always
         RestartSec=5
 
