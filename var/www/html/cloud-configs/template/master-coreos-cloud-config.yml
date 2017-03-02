@@ -481,6 +481,8 @@ write_files:
               version: v0
               kubernetes.io/cluster-service: "true"
           spec:
+            nodeSelector:
+              kubeadm.alpha.kubernetes.io/role: "master"
             containers:
             - name: registry
               image: registry:2
@@ -538,6 +540,8 @@ coreos:
 
   units:
     - name: systemd-networkd.service
+      command: stop
+    - name: update-engine.service
       command: stop
     - name: 00-eth0.network
       runtime: true

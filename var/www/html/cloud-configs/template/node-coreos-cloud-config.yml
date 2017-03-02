@@ -159,7 +159,8 @@ coreos:
       command: start
     - name: systemd-networkd.service
       command: stop
-    - name: 00-eth0.network
+    - name: update-engine.service
+    - name: stop
       runtime: true
       content: |
         [Match]

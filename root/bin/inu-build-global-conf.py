@@ -143,7 +143,7 @@ def CloudConfigToBash(InstallationInfo):
         n = int(permissions, 8)
         os.chmod(srcDir + path, n)
 
-    IgnorantList = ['systemd-networkd.service', '00-eth0.network', 'down-interfaces.service', 'etcd2.service']
+    IgnorantList = ['systemd-networkd.service', '00-eth0.network', 'down-interfaces.service', 'etcd2.service', 'update-engine.service']
     if not os.path.exists(srcDir + '/etc/systemd/system'):
         os.makedirs(srcDir + '/etc/systemd/system')
 
