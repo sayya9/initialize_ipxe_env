@@ -1,0 +1,15 @@
+calico/kube-policy-controller:v0.5.1
+henryrao/exechealthz-amd64:1.1
+henryrao/kube-dnsmasq-amd64:1.3
+henryrao/kubedns-amd64:1.7
+henryrao/pause-amd64:3.0
+henryrao/node:v1.0.0
+calico/cni:v1.5.5
+calico/ctl:v1.0.0
+henryrao/etcd:2.2.1
+henryrao/hyperkube-amd64:v1.5.3
+henryrao/kube-discovery-amd64:1.0
+henryrao/kubeadm:v1.5.3
+gluster/gluster-centos:latest
+heketi/heketi:dev
+registry:2

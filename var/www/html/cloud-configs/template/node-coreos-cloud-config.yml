@@ -160,7 +160,10 @@ coreos:
     - name: systemd-networkd.service
       command: stop
     - name: update-engine.service
-    - name: stop
+      command: stop
+    - name: locksmithd.service
+      command: stop
+    - name: 00-eth0.network
       runtime: true
       content: |
         [Match]

@@ -46,7 +46,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
     f.write('ServerIPAddress=your_' + InstallationKind + '_IP_Address' + '\n')
     f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
-    f.write('K8SVersion=1.5.2'+ '\n')
+    f.write('K8SVersion=1.5.3'+ '\n')
     f.write('RemoveDataLVM=no'+ '\n')
     f.write('UseHostnameOverride=yes'+ '\n')
     if InstallationKind == 'node':
@@ -143,7 +143,7 @@ def CloudConfigToBash(InstallationInfo):
         n = int(permissions, 8)
         os.chmod(srcDir + path, n)
 
-    IgnorantList = ['systemd-networkd.service', '00-eth0.network', 'down-interfaces.service', 'etcd2.service', 'update-engine.service']
+    IgnorantList = ['systemd-networkd.service', '00-eth0.network', 'down-interfaces.service', 'etcd2.service', 'update-engine.service', 'locksmithd.service']
     if not os.path.exists(srcDir + '/etc/systemd/system'):
         os.makedirs(srcDir + '/etc/systemd/system')
 

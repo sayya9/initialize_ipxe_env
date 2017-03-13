@@ -1,3 +1,4 @@
 etc/dhcp/dhcpd.conf
 var/www/html/k8s/
 *.swp
+var/www/html/soft/ActivePython-2.7.13.2713-linux-x86_64-glibc-2.3.6-401785.tar.gz

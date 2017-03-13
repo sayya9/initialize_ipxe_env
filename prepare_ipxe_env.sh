@@ -5,6 +5,7 @@ CoreOSInstallationVersion=1235.6.0
 CentOSInstallationVersion=7
 DeployCoreOS=yes
 DeployCentOS=no
+IsChina=no
 iPXE_Server_IP=192.168.56.90
 GatewayIP=192.168.56.1
 ethX=eth1
@@ -166,6 +167,7 @@ EOF
     cd /var/www/html/k8s
     tar -zcvf /var/www/html/k8s/manifests.tar.gz manifests
     cd $PrepareDir
+
 }
 
 
@@ -224,16 +226,30 @@ sed -i 's/\(hyperkube-amd64:\|kubeadm:\)v[0-9]\+\.[0-9]\+\.[0-9]\+/\1v'$K8SVersi
 set +x
 
 # pull and tar image
+if [ "$IsChina" == "no" ]; then
+    imageList="./prod-images"
+elif [ "$IsChina" == "yes" ]; then
+    cp -f prod-images{,.for_china}
+    sed -i -e 's#\(gcr.*\)/\(.*\):\(.*\)#henryrao/\2:\3#g' -e 's#\(quay.*\)/\(.*\):\(.*\)#henryrao/\2:\3#g' prod-images.for_china
+    imageList="./prod-images.for_china"
+fi
 mkdir -p /var/www/html/images/docker
 true > /var/www/html/images/docker-list
 while read -r line
 do
     img="$line"
     docker pull $img
+    if [ "$IsChina" == "yes" ]; then
+        img=`grep ${img##*/} ./prod-images`
+        docker tag $line $img
+    fi
     tar_filename=`echo ${img##*/} | tr ':' '_'`.tar
     echo "Saving $img to $tar_filename"
     docker save $img > /var/www/html/images/docker/$tar_filename
     echo "$tar_filename" >> /var/www/html/images/docker-list
-done < "./prod-images"
+done < $imageList
+
+# Download ActivePython
+wget -c -P var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.13.2713/ActivePython-2.7.13.2713-linux-x86_64-glibc-2.3.6-401785.tar.gz
 
 UpdateConf
