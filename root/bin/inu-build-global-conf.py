@@ -43,14 +43,15 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
         f.write('CoreOSInstallationVersion=1235.6.0' + '\n')
     elif OSPlatform == 'centos':
         f.write('CentOSInstallationVersion=7' + '\n')
-    f.write('ServerIPAddress=your_' + InstallationKind + '_IP_Address' + '\n')
-    f.write('MACAddress=your_' + InstallationKind + '_MAC_Address' + '\n')
+    f.write('ServerIPAddress=Your_' + InstallationKind + '_IP_Address' + '\n')
+    f.write('MACAddress=Your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
     f.write('K8SVersion=1.5.3'+ '\n')
     f.write('RemoveDataLVM=no'+ '\n')
     f.write('UseHostnameOverride=yes'+ '\n')
     if InstallationKind == 'node':
-        f.write("MasterIPAddress=your_Kubernetes_master_IP\n")
+        f.write("MasterHostname=Your_Kubernetes_master_Hostname\n")
+        f.write("MasterIPAddress=Your_Kubernetes_master_IP\n")
     f.close()
 
 def EditInstallationConf(InstallationHostname):

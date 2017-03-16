@@ -67,7 +67,7 @@ write_files:
     permissions: "0644"
     content: |
       {
-        "insecure-registries": [ "127.0.0.1:5000","InstallationHostname:32767" ]
+        "insecure-registries": [ "127.0.0.1:5000","MasterHostname:32767" ]
       }
 
   - path: /opt/bin/speed
