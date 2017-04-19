@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-K8SVersion=1.5.3
+K8SVersion=1.5.6
 CoreOSInstallationVersion=1235.6.0
 CentOSInstallationVersion=7
 DeployCoreOS=yes
@@ -182,6 +182,12 @@ fi
 
 if [ "$DeployCentOS" == "yes" ]; then
     CentOSEnv
+fi
+
+# Install python yaml module
+if ! dpkg -l | grep -q "python3-pip"; then
+    apt-get install -y python3-pip
+    pip3 install pyyaml
 fi
 
 # Download pxelinux.0

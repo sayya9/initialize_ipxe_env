@@ -526,6 +526,9 @@ write_files:
           port: 5000
           protocol: TCP
           nodePort: 32767
+  - path: /etc/sysctl.d/vm.conf
+    content: |
+      vm.max_map_count=262144
 
 coreos:
   etcd2:
