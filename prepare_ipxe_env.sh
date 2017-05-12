@@ -1,19 +1,28 @@
 #!/bin/bash -ex
 
 K8SVersion=1.5.6
-CoreOSInstallationVersion=1235.6.0
+CoreOSInstallationVersion=`curl https://alpha.release.core-os.net/amd64-usr/current/version.txt | sed -n 's/COREOS_VERSION=\(.*\)/\1/p'`
+#CoreOSInstallationVersion=1353.7.0
 CentOSInstallationVersion=7
-DeployCoreOS=yes
-DeployCentOS=no
+DeployCoreOS=no
+DeployCentOS=yes
 IsChina=no
-iPXE_Server_IP=192.168.56.90
-GatewayIP=192.168.56.1
-ethX=eth1
+iPXE_Server_IP=192.168.2.110
+GatewayIP=192.168.2.1
+ethX=br0
 PrepareDir=$PWD
+
+CheckDistributio() {
+    if grep -iq centos /etc/*-release; then
+        echo centos
+    elif grep -iq ubuntu /etc/*-release; then
+        echo ubuntu
+    fi
+}
 
 CoreOSEnv() {
     # Download coreos_production_iso_image.iso to get vmlinuz and cpio.gz
-    wget -c -P /root https://stable.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
+    wget -c -P /root https://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
     tempDir=/mnt/coreos_production_iso_image
     mkdir -p $tempDir
     if ! grep -q $tempDir /proc/mounts; then
@@ -24,14 +33,14 @@ CoreOSEnv() {
     umount $tempDir
 
     # Download necessary files
-    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
-    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://stable.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
+    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
+    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
 }
 
 CentOSEnv() {
     # Download CentOS iso
     curl http://isoredirect.centos.org/centos/${CentOSInstallationVersion}/isos/x86_64/ > /tmp/tempfile.txt
-    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | head -n 1`
+    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | tail -n 1`
     curl $CentOSURL > /tmp/tempfile.txt
     FileName=`cat /tmp/tempfile.txt | sed -n '/CentOS-.*-x86_64-DVD.*.iso/s/.*\(CentOS-.*-x86_64-DVD.*.iso\).*/\1/p'`
     wget -c -P /root ${CentOSURL}${FileName}
@@ -62,24 +71,21 @@ UpdateConf() {
     Range2=${iPXE_Server_IP%.*}.200
     Broadcast=${iPXE_Server_IP%.*}.255
 
-    # Create DHCP configuration
-    mkdir -p /etc/dhcp
-    cat > /etc/dhcp/dhcpd.conf << EOF
-ddns-update-style none;
-option domain-name "example.org";
-option domain-name-servers 8.8.8.8;
-default-lease-time 600;
-max-lease-time 7200;
-log-facility local7;
-
-subnet $Subnet netmask $Netmask {
-  range $Range1 $Range2;
-  option routers $GatewayIP;
-  option broadcast-address $Broadcast;
-  next-server $iPXE_Server_IP;
-  filename = "pxelinux.0";
-}
-
+    # Create dnsmasq configuration
+    cat > /etc/dnsmasq.conf << EOF
+log-queries
+log-dhcp
+log-facility=/var/log/dnsmasq.log
+dhcp-leasefile=/tmp/dnsmasq.leases
+enable-tftp
+tftp-root=/var/tftpboot
+dhcp-boot=pxelinux.0
+interface=$ethX
+bind-interfaces
+dhcp-range=$Range1,$Range2,12h
+dhcp-option=1,$Netmask
+dhcp-option=3,$GatewayIP
+dhcp-option=28,$Broadcast
 EOF
 
     # Create PXE by_mac template 
@@ -114,7 +120,7 @@ EOF
 
     cp -f systemd-conf/* /etc/systemd/system
     systemctl daemon-reload
-    for i in nfs-server nginx tftp; do
+    for i in nfs-server nginx dnsmasq-docker; do
         systemctl enable $i
         systemctl restart $i
     done
@@ -133,12 +139,17 @@ EOF
     dic=([ethX]="$ethX" [K8SVersion]="$K8SVersion" [iPXE_Server_IP]="$iPXE_Server_IP" [GatewayIP]="$GatewayIP" \
         [CoreOSInstallationVersion]="$CoreOSInstallationVersion" [CentOSInstallationVersion]="$CentOSInstallationVersion")
     for i in `echo ${!dic[*]}`; do
-        for j in /etc/systemd/system/dhcp.service ${WebDir}/{bin,scripts,cloud-configs/template,ks}/* /var/tftpboot/pxelinux.cfg/by_mac.tpl; do
+        for j in ${WebDir}/{bin,scripts,cloud-configs/template,ks}/* /var/tftpboot/pxelinux.cfg/by_mac.tpl; do
             sed -i "s/$i/${dic["$i"]}/g" $j
         done
     done
 
     # gather kubernetes manifests
+    if CheckDistributio == "centos"; then
+        yum install -y git
+    elif CheckDistributio == "ubuntu"; then
+        apt-get install -y git
+    fi
     dir=var/www/html/k8s
     repositoies=(https://github.com/jaohaohsuan/heketi-kubernetes-deploy,heketi-kubernetes-deploy)
 
@@ -152,7 +163,7 @@ EOF
       if [ -d "${repo}/.git" ]; then
         cd $repo
         git checkout master
-        git pull --tags
+        git fetch --tags
       else
         git clone $url $repo
         cd $repo
@@ -185,7 +196,12 @@ if [ "$DeployCentOS" == "yes" ]; then
 fi
 
 # Install python yaml module
-if ! dpkg -l | grep -q "python3-pip"; then
+if CheckDistributio == "centos"; then
+    yum install -y epel-release
+    yum install -y python34-setuptools
+    easy_install-3.4 pip
+    pip3 install pyyaml
+elif CheckDistributio == "ubuntu"; then
     apt-get install -y python3-pip
     pip3 install pyyaml
 fi
@@ -200,20 +216,22 @@ cp syslinux-6.03/bios/core/pxelinux.0 /var/tftpboot
 cd $PrepareDir
 
 # Add docker repository and install docker
-if ! apt-cache policy | grep -q "apt.dockerproject.org"; then
+if CheckDistributio == "centos"; then
+    cp -f yum/docker.repo /etc/yum.repos.d
+    yum install -y docker-engine
+elif CheckDistributio == "ubuntu"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
+    apt-key update
+    apt-get update
+    apt-get install -y docker-engine
 fi
-apt-key update
-apt-get update
-apt-get install -y docker-engine
+
 
 # pull ipxe environment service images
-docker pull networkboot/dhcpd
 docker pull nginx:stable-alpine
 docker pull cpuguy83/nfs-server
-docker pull pghalliday/tftp
-
+docker pull andyshinn/dnsmasq:2.76
 
 # Download ipxe.iso to get ipxe.krn
 wget -c -P /root http://boot.ipxe.org/ipxe.iso

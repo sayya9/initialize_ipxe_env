@@ -1,0 +1,14 @@
+[Unit]
+Description=dnsmasq container
+After=docker.service
+Requires=docker.service
+ 
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker pull andyshinn/dnsmasq:2.76
+ExecStartPre=-/usr/bin/docker rm -f %n
+ExecStart=/usr/bin/docker run --rm --name %n --cap-add=NET_ADMIN --net=host -v /etc/dnsmasq.conf:/etc/dnsmasq.conf -v /var/tftpboot:/var/tftpboot andyshinn/dnsmasq:2.76
+ 
+[Install]
+WantedBy=multi-user.target

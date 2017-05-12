@@ -7,6 +7,7 @@ import subprocess
 import shutil
 import yaml
 import tarfile
+import fileinput
 from optparse import OptionParser
 
 def CheckInstallationArgs(InstallationKind, InstallationHostname):
@@ -40,7 +41,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
     f.write('InstallationKind=' + InstallationKind + '\n')
     f.write('InstallationHostname=' + InstallationHostname + '\n')
     if OSPlatform == 'coreos':
-        f.write('CoreOSInstallationVersion=1235.6.0' + '\n')
+        f.write('CoreOSInstallationVersion=1395.0.0' + '\n')
     elif OSPlatform == 'centos':
         f.write('CentOSInstallationVersion=7' + '\n')
     f.write('ServerIPAddress=Your_' + InstallationKind + '_IP_Address' + '\n')
@@ -171,25 +172,27 @@ def CloudConfigToBash(InstallationInfo):
     tar.add(srcDir, arcname=os.path.basename(srcDir))
     tar.close()
 
-def UpdateDHCPServer(InstallationInfo):
-    ConfDir = '/etc/dhcp/'
-    dst = ConfDir + 'dhcpd.conf'
+def UpdateDnsmasq(InstallationInfo):
+    dst = '/etc/dnsmasq.conf'
     f = open(dst, 'r')
     for i in f:
         if re.search(InstallationInfo['MACAddress'], i):
-            cmd = 'systemctl daemon-reload && systemctl restart dhcp'
-            subprocess.call(cmd, shell = True)
-            f.close()
-            return True
+            for mLine in fileinput.input(dst, inplace=True):
+                if InstallationInfo['MACAddress'] in mLine:
+                    continue
+                print(mLine, end='')
+
+        if re.search(InstallationInfo['InstallationHostname'], i):
+            for iLine in fileinput.input(dst, inplace=True):
+                if InstallationInfo['InstallationHostname'] in iLine:
+                    continue
+                print(iLine, end='')
 
     f.close()
     o = open(dst, 'a')
-    o.write('host ' + InstallationInfo['InstallationHostname'] + ' {\n')
-    o.write('  hardware ethernet ' + InstallationInfo['MACAddress'] + ';\n')
-    o.write('  fixed-address ' + InstallationInfo['ServerIPAddress'] + ';\n')
-    o.write('}\n\n')
+    o.write('dhcp-host=' + InstallationInfo['MACAddress'] + ',' + InstallationInfo['InstallationHostname'] + ',' + InstallationInfo['ServerIPAddress'] + ',12h\n')
     o.close()
-    cmd = 'systemctl daemon-reload && systemctl restart dhcp'
+    cmd = 'systemctl daemon-reload && systemctl restart dnsmasq-docker'
     subprocess.call(cmd, shell = True)
 
 if __name__ == '__main__':
@@ -259,7 +262,7 @@ if __name__ == '__main__':
                     CreateKickstartConf(InstallationInfo)
                     CloudConfigToBash(InstallationInfo)
                 TarScripts(InstallationInfo)
-                UpdateDHCPServer(InstallationInfo)
+                UpdateDnsmasq(InstallationInfo)
             else:
                 print('Please make sure your hostname has been specified.')
                 print('For example: inu-build-global-conf.py -H node1.example.org -r')

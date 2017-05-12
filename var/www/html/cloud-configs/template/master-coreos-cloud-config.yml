@@ -527,6 +527,8 @@ write_files:
           protocol: TCP
           nodePort: 32767
   - path: /etc/sysctl.d/vm.conf
+    owner: root
+    permissions: "0644"
     content: |
       vm.max_map_count=262144
 

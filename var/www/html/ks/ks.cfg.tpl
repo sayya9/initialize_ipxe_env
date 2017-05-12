@@ -9,7 +9,6 @@ url --url=http://iPXE_Server_IP/repo/centos/CentOSInstallationVersion/os/x86_64
 text
 # Run the Setup Agent on first boot
 firstboot --disable
-ignoredisk --only-use=sda
 
 # Keyboard layouts
 keyboard --vckeymap=us --xlayouts='us'
@@ -29,19 +28,6 @@ network --bootproto=dhcp --device=eth0 --noipv6 --activate --hostname Installati
 # Root password
 rootpw --iscrypted $6$Iu434Je.N7BcmXGj$uhFrG/mSWe8OjB0bB3n3cdw85gxcFh8NZ6TDN.kQmvs.Qg8sD5CQylmiVQQ3aB1OzBVl0MvILZf8GoKT4ddCy.
 
-# System bootloader configuration
-bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
-
-# Partition clearing information
-clearpart --all --initlabel --drives=sda
-
-# Disk partitioning information
-part /boot --fstype="xfs" --ondisk=sda --size=500
-part pv.01 --fstype="lvmpv" --ondisk=sda --size=4096 --maxsize=51200 --grow
-volgroup vg_root --pesize=4096 pv.01
-logvol swap  --fstype="swap" --size=1024 --name=lv_swap --vgname=vg_root
-logvol /  --fstype="xfs" --grow --size=1024 --maxsize=51200 --name=lv_root --vgname=vg_root
-
 # Reboot afer installing
 reboot
 
@@ -50,15 +36,39 @@ openssh-clients
 openssh-server
 yum
 curl
+wget
 %end
 
 %addon com_redhat_kdump --enable --reserve-mb='auto'
 %end
 
-%pre --log=/mnt/sysimage/root/ks-pre.log
+%include /tmp/diskinfo
+%pre
 cat > /root/installation_nic_mac << EOF
 MACAddress
 EOF
+
+#!/bin/bash
+if [ -b /dev/vda ] ; then
+    echo "bootloader --location=mbr --driveorder=vda --append=" rhgb crashkernel=auto quiet net.ifnames=0 biosdevname=0"" > /tmp/diskinfo
+    echo "zerombr" >> /tmp/diskinfo
+    echo "clearpart --all" >> /tmp/diskinfo
+    echo "part pv.008002 --ondisk=/dev/vda --grow --size=1" >> /tmp/diskinfo
+    echo "volgroup rootvg --pesize=4096 pv.008002" >> /tmp/diskinfo
+    echo "logvol / --fstype=ext4 --name=rootlv --vgname=rootvg --grow --size=1024 --maxsize=51200" >> /tmp/diskinfo
+    echo "logvol swap --name=swaplv --vgname=rootvg --grow --size=1024 --maxsize=4096" >> /tmp/diskinfo
+    echo "part /boot --fstype=ext4 --size=512" >> /tmp/diskinfo
+
+elif [ -b /dev/sda ] ; then
+    echo "bootloader --location=mbr --driveorder=sda --append=" rhgb crashkernel=auto quiet net.ifnames=0 biosdevname=0"" > /tmp/diskinfo
+    echo "zerombr" >> /tmp/diskinfo
+    echo "clearpart --all" >> /tmp/diskinfo
+    echo "part pv.008002 --ondisk=/dev/sda --grow --size=1" >> /tmp/diskinfo
+    echo "volgroup rootvg --pesize=4096 pv.008002" >> /tmp/diskinfo
+    echo "logvol / --fstype=ext4 --name=rootlv --vgname=rootvg --grow --size=1024 --maxsize=51200" >> /tmp/diskinfo
+    echo "logvol swap --name=swaplv --vgname=rootvg --grow --size=1024 --maxsize=4096" >> /tmp/diskinfo
+    echo "part /boot --fstype=ext4 --size=512" >> /tmp/diskinfo
+fi
 %end
 
 %post --nochroot --log=/mnt/sysimage/root/ks-post.log
