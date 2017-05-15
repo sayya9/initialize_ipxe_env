@@ -28,6 +28,9 @@ network --bootproto=dhcp --device=eth0 --noipv6 --activate --hostname Installati
 # Root password
 rootpw --iscrypted $6$Iu434Je.N7BcmXGj$uhFrG/mSWe8OjB0bB3n3cdw85gxcFh8NZ6TDN.kQmvs.Qg8sD5CQylmiVQQ3aB1OzBVl0MvILZf8GoKT4ddCy.
 
+# Disable the use of SELinux in the installer
+selinux=0
+
 # Reboot afer installing
 reboot
 
@@ -73,9 +76,6 @@ fi
 
 %post --nochroot --log=/mnt/sysimage/root/ks-post.log
 /bin/bash -c 'wget -O - http://iPXE_Server_IP/bin/ipxe-cleand.sh | bash -ex -'
-
-sed -i '/GRUB_CMDLINE_LINUX=/s/GRUB_CMDLINE_LINUX="\(.*\)"/GRUB_CMDLINE_LINUX="\1 net.ifnames=0 biosdevname=0"/' /mnt/sysimage/etc/default/grub
-chroot /mnt/sysimage grub2-mkconfig -o /boot/grub2/grub.cfg
 
 # Disable reverse dns lookups in ssh
 sed -i '/UseDNS/s/.*/UseDNS no/' /mnt/sysimage/etc/ssh/sshd_config
