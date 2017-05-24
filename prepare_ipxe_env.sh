@@ -58,7 +58,7 @@ CentOSEnv() {
     repoDockerDir=${repoParentDir}/${CentOSInstallationVersion}/dockerrepo
     mkdir -p $repoUpdatesDir $repoDockerDir
     docker pull centos:7
-    docker run -v ${repoUpdatesDir}:/tmp/updates/x86_64 -v ${repoDockerDir}:/tmp/dockerrepo -v ${PrepareDir}/yum/docker.repo:/etc/yum.repos.d/docker.repo --rm -it centos:7 bash -c "reposync -r updates -p /tmp/updates/x86_64 --norepopath && reposync -r dockerrepo -p /tmp/dockerrepo --norepopath && yum install -y createrepo && createrepo -v /tmp/updates/x86_64 && createrepo -v /tmp/dockerrepo"
+    docker run --net=host -v ${repoUpdatesDir}:/tmp/updates/x86_64 -v ${repoDockerDir}:/tmp/dockerrepo -v ${PrepareDir}/yum/docker.repo:/etc/yum.repos.d/docker.repo --rm -it centos:7 bash -c "reposync -r updates -p /tmp/updates/x86_64 --norepopath && reposync -r dockerrepo -p /tmp/dockerrepo --norepopath && yum install -y createrepo && createrepo -v /tmp/updates/x86_64 && createrepo -v /tmp/dockerrepo"
 
     # Download etcd rpm
     wget -N -P /var/www/html/soft ${CentOSURL%isos/*/}extras/x86_64/Packages/etcd-2.3.7-4.el7.x86_64.rpm
@@ -179,6 +179,13 @@ EOF
     tar -zcvf /var/www/html/k8s/manifests.tar.gz manifests
     cd $PrepareDir
 
+    # Render inu-build-global-conf.py
+    Pattern=CoreOSInstallationVersion
+    if ! [ -d "${HOME}/bin" ]; then
+        mkdir ${HOME}/bin
+    fi
+    sed "s/${Pattern}=xxxx.x.x/${Pattern}=${CoreOSInstallationVersion}/g" root/bin/inu-build-global-conf.py > ${HOME}/bin/inu-build-global-conf.py
+    chmod +x ${HOME}/bin/inu-build-global-conf.py
 }
 
 
@@ -274,6 +281,6 @@ do
 done < $imageList
 
 # Download ActivePython
-wget -c -P var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.13.2713/ActivePython-2.7.13.2713-linux-x86_64-glibc-2.3.6-401785.tar.gz
+#wget -c -P var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.13.2713/ActivePython-2.7.13.2713-linux-x86_64-glibc-2.3.6-401785.tar.gz
 
 UpdateConf

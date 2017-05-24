@@ -41,7 +41,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
     f.write('InstallationKind=' + InstallationKind + '\n')
     f.write('InstallationHostname=' + InstallationHostname + '\n')
     if OSPlatform == 'coreos':
-        f.write('CoreOSInstallationVersion=1395.0.0' + '\n')
+        f.write('CoreOSInstallationVersion=xxxx.x.x' + '\n')
     elif OSPlatform == 'centos':
         f.write('CentOSInstallationVersion=7' + '\n')
     f.write('ServerIPAddress=Your_' + InstallationKind + '_IP_Address' + '\n')

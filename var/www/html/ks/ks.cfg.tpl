@@ -19,17 +19,11 @@ lang en_US.UTF-8
 # System timezone
 timezone --utc Asia/Taipei
 
-# SELinux configuration
-selinux disabled
-
 # Network information
 network --bootproto=dhcp --device=eth0 --noipv6 --activate --hostname InstallationHostname
 
 # Root password
 rootpw --iscrypted $6$Iu434Je.N7BcmXGj$uhFrG/mSWe8OjB0bB3n3cdw85gxcFh8NZ6TDN.kQmvs.Qg8sD5CQylmiVQQ3aB1OzBVl0MvILZf8GoKT4ddCy.
-
-# Disable the use of SELinux in the installer
-selinux=0
 
 # Reboot afer installing
 reboot
@@ -120,6 +114,9 @@ EOF
 chroot /mnt/sysimage yum install -y docker-engine
 chroot /mnt/sysimage systemctl enable docker
 
+# Disable docker iptables
+sed -i 's/dockerd/& --iptables=false/g' /mnt/sysimage/usr/lib/systemd/system/docker.service
+
 # cloud-config to bash
 curl -Lsk http://iPXE_Server_IP/cloud-config_to_bash/InstallationHostname-cloud-config_to_bash.tgz | tar -mzxC /root
 rsync -avz /root/cloud-config_to_bash/ /mnt/sysimage/
@@ -133,5 +130,8 @@ export etcd_args=`cat /mnt/sysimage/root/etcd_args.txt`
 sed -i "s#\(ExecStart=/bin/bash -c.*/usr/bin/etcd \).*#\1${etcd_args}\"#g" /mnt/sysimage/lib/systemd/system/etcd.service
 echo "Alias=etcd2.service" >> /mnt/sysimage/usr/lib/systemd/system/etcd.service
 chroot /mnt/sysimage systemctl enable etcd
+
+# Disable SELINUX
+sed -i -e 's/\(^SELINUX=\).*$/\1disabled/' /mnt/sysimage/etc/selinux/config
 
 %end
