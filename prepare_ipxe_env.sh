@@ -194,6 +194,20 @@ if [ "$1" == "-s" ]; then
     exit 0
 fi
 
+# Add docker repository and install docker
+if CheckDistributio == "centos"; then
+    cp -f yum/docker.repo /etc/yum.repos.d
+    yum install -y docker-engine
+    systemctl start docker
+    systemctl enable docker
+elif CheckDistributio == "ubuntu"; then
+    apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+    echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
+    apt-key update
+    apt-get update
+    apt-get install -y docker-engine
+fi
+
 if [ "$DeployCoreOS" == "yes" ]; then
     CoreOSEnv
 fi
@@ -221,19 +235,6 @@ mkdir -p /var/tftpboot
 cp syslinux-6.03/bios/com32/elflink/ldlinux/ldlinux.c32 /var/tftpboot
 cp syslinux-6.03/bios/core/pxelinux.0 /var/tftpboot
 cd $PrepareDir
-
-# Add docker repository and install docker
-if CheckDistributio == "centos"; then
-    cp -f yum/docker.repo /etc/yum.repos.d
-    yum install -y docker-engine
-elif CheckDistributio == "ubuntu"; then
-    apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-    echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
-    apt-key update
-    apt-get update
-    apt-get install -y docker-engine
-fi
-
 
 # pull ipxe environment service images
 docker pull nginx:stable-alpine
