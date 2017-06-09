@@ -2,7 +2,6 @@
 
 K8SVersion=1.5.6
 CoreOSInstallationVersion=`curl https://alpha.release.core-os.net/amd64-usr/current/version.txt | sed -n 's/COREOS_VERSION=\(.*\)/\1/p'`
-#CoreOSInstallationVersion=1353.7.0
 CentOSInstallationVersion=7
 DeployCoreOS=no
 DeployCentOS=yes
@@ -40,7 +39,7 @@ CoreOSEnv() {
 CentOSEnv() {
     # Download CentOS iso
     curl http://isoredirect.centos.org/centos/${CentOSInstallationVersion}/isos/x86_64/ > /tmp/tempfile.txt
-    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | tail -n 1`
+    CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | head -n 1`
     curl $CentOSURL > /tmp/tempfile.txt
     FileName=`cat /tmp/tempfile.txt | sed -n '/CentOS-.*-x86_64-DVD.*.iso/s/.*\(CentOS-.*-x86_64-DVD.*.iso\).*/\1/p'`
     wget -c -P /root ${CentOSURL}${FileName}
