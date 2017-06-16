@@ -21,7 +21,7 @@ CheckDistributio() {
 
 CoreOSEnv() {
     # Download coreos_production_iso_image.iso to get vmlinuz and cpio.gz
-    wget -c -P /root https://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
+    wget -nc -P /root https://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
     tempDir=/mnt/coreos_production_iso_image
     mkdir -p $tempDir
     if ! grep -q $tempDir /proc/mounts; then
@@ -32,8 +32,8 @@ CoreOSEnv() {
     umount $tempDir
 
     # Download necessary files
-    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
-    wget -c -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
+    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
+    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
 }
 
 CentOSEnv() {
@@ -42,22 +42,32 @@ CentOSEnv() {
     CentOSURL=`cat /tmp/tempfile.txt | sed -n 's#.*\(http://.*/isos/x86_64/\).*#\1#p' | head -n 1`
     curl $CentOSURL > /tmp/tempfile.txt
     FileName=`cat /tmp/tempfile.txt | sed -n '/CentOS-.*-x86_64-DVD.*.iso/s/.*\(CentOS-.*-x86_64-DVD.*.iso\).*/\1/p'`
-    wget -c -P /root ${CentOSURL}${FileName}
+    wget -nc -P /root ${CentOSURL}${FileName}
 
     # Mount iso to base repo directory
     repoParentDir=/var/www/html/repo/centos
     repoBaseDir=${repoParentDir}/${CentOSInstallationVersion}/os/x86_64
     mkdir -p $repoBaseDir
-    if ! grep -q $repoBaseDir /proc/mounts; then
-        mount /root/${FileName} $repoBaseDir
+    if ! grep -q $repoBaseDir /etc/fstab; then
+        echo "/root/$FileName $repoBaseDir iso9660 defaults,ro,loop 0 0" >> /etc/fstab
+        mount -a
     fi
 
+
     # Download updates and docker repo rpm packages
-    repoUpdatesDir=${repoParentDir}/${CentOSInstallationVersion}/updates/x86_64
-    repoDockerDir=${repoParentDir}/${CentOSInstallationVersion}/dockerrepo
-    mkdir -p $repoUpdatesDir $repoDockerDir
+    yum_repos_d=/etc/yum.repos.d
+    hRepoUpdatesDir=${repoParentDir}/${CentOSInstallationVersion}/updates/x86_64
+    hRepoDockerDir=${repoParentDir}/${CentOSInstallationVersion}/docker-main-repo
+    cRepoUpdatesDir=/tmp/updates/x86_64
+    cRepoDockerDir=/tmp/docker-main-repo
     docker pull centos:7
-    docker run --net=host -v ${repoUpdatesDir}:/tmp/updates/x86_64 -v ${repoDockerDir}:/tmp/dockerrepo -v ${PrepareDir}/yum/docker.repo:/etc/yum.repos.d/docker.repo --rm -it centos:7 bash -c "reposync -r updates -p /tmp/updates/x86_64 --norepopath && reposync -r dockerrepo -p /tmp/dockerrepo --norepopath && yum install -y createrepo && createrepo -v /tmp/updates/x86_64 && createrepo -v /tmp/dockerrepo"
+    docker run --net=host -v ${hRepoUpdatesDir}:${cRepoUpdatesDir} -v ${hRepoDockerDir}:${cRepoDockerDir} -v ${yum_repos_d}:${yum_repos_d} --rm -it centos:7 bash -c "(
+        yum install -y yum-utils createrepo && \
+        reposync -nr updates -p $cRepoUpdatesDir --norepopath && \
+        createrepo -v $cRepoUpdatesDir && \
+        reposync -nr docker-main-repo -p $cRepoDockerDir --norepopath && \
+        createrepo -v $cRepoDockerDir
+    )"
 
     # Download etcd rpm
     wget -N -P /var/www/html/soft ${CentOSURL%isos/*/}extras/x86_64/Packages/etcd-2.3.7-4.el7.x86_64.rpm
@@ -227,7 +237,7 @@ elif CheckDistributio == "ubuntu"; then
 fi
 
 # Download pxelinux.0
-wget -c -P /root https://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03.tar.gz
+wget -nc -P /root https://www.kernel.org/pub/linux/utils/boot/syslinux/syslinux-6.03.tar.gz
 cd /root
 tar xzvf syslinux-6.03.tar.gz
 mkdir -p /var/tftpboot
@@ -241,7 +251,7 @@ docker pull cpuguy83/nfs-server
 docker pull andyshinn/dnsmasq:2.76
 
 # Download ipxe.iso to get ipxe.krn
-wget -c -P /root http://boot.ipxe.org/ipxe.iso
+wget -nc -P /root http://boot.ipxe.org/ipxe.iso
 mount /root/ipxe.iso /mnt
 cp -f /mnt/ipxe.krn /var/tftpboot
 umount /mnt
