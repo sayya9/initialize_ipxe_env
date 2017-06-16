@@ -1,6 +1,11 @@
-#version=DEVEL
 # System authorization information
 auth --enableshadow --passalgo=sha512
+
+# Install OS instead of upgrade
+install
+
+# Firewall configuration
+firewall --disabled
 
 # Use network installation
 url --url=http://iPXE_Server_IP/repo/centos/CentOSInstallationVersion/os/x86_64
