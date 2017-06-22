@@ -154,9 +154,9 @@ EOF
     done
 
     # gather kubernetes manifests
-    if CheckDistribution == "centos"; then
+    if $distribution == "centos"; then
         yum install -y git
-    elif CheckDistribution == "ubuntu"; then
+    elif $distribution == "ubuntu"; then
         apt-get install -y git
     fi
     dir=var/www/html/k8s
@@ -203,13 +203,14 @@ if [ "$1" == "-s" ]; then
     exit 0
 fi
 
+distribution=CheckDistribution
 # Add docker repository and install docker
-if CheckDistribution == "centos"; then
+if $distribution == "centos"; then
     cp -f yum/docker.repo /etc/yum.repos.d
     yum install -y docker-engine
     systemctl start docker
     systemctl enable docker
-elif CheckDistribution == "ubuntu"; then
+elif $distribution == "ubuntu"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
     apt-key update
@@ -226,12 +227,12 @@ if [ "$DeployCentOS" == "yes" ]; then
 fi
 
 # Install python yaml module
-if CheckDistribution == "centos"; then
+if $distribution == "centos"; then
     yum install -y epel-release
     yum install -y python34-setuptools
     easy_install-3.4 pip
     pip3 install pyyaml
-elif CheckDistribution == "ubuntu"; then
+elif $distribution == "ubuntu"; then
     apt-get install -y python3-pip
     pip3 install pyyaml
 fi
