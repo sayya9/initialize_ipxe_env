@@ -11,7 +11,7 @@ GatewayIP=192.168.2.1
 ethX=br0
 PrepareDir=$PWD
 
-CheckDistributio() {
+CheckDistribution() {
     if grep -iq centos /etc/*-release; then
         echo centos
     elif grep -iq ubuntu /etc/*-release; then
@@ -154,9 +154,9 @@ EOF
     done
 
     # gather kubernetes manifests
-    if CheckDistributio == "centos"; then
+    if CheckDistribution == "centos"; then
         yum install -y git
-    elif CheckDistributio == "ubuntu"; then
+    elif CheckDistribution == "ubuntu"; then
         apt-get install -y git
     fi
     dir=var/www/html/k8s
@@ -204,12 +204,12 @@ if [ "$1" == "-s" ]; then
 fi
 
 # Add docker repository and install docker
-if CheckDistributio == "centos"; then
+if CheckDistribution == "centos"; then
     cp -f yum/docker.repo /etc/yum.repos.d
     yum install -y docker-engine
     systemctl start docker
     systemctl enable docker
-elif CheckDistributio == "ubuntu"; then
+elif CheckDistribution == "ubuntu"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
     apt-key update
@@ -226,12 +226,12 @@ if [ "$DeployCentOS" == "yes" ]; then
 fi
 
 # Install python yaml module
-if CheckDistributio == "centos"; then
+if CheckDistribution == "centos"; then
     yum install -y epel-release
     yum install -y python34-setuptools
     easy_install-3.4 pip
     pip3 install pyyaml
-elif CheckDistributio == "ubuntu"; then
+elif CheckDistribution == "ubuntu"; then
     apt-get install -y python3-pip
     pip3 install pyyaml
 fi
