@@ -203,7 +203,7 @@ if [ "$1" == "-s" ]; then
     exit 0
 fi
 
-distribution=CheckDistribution
+distribution=`CheckDistribution`
 # Add docker repository and install docker
 if $distribution == "centos"; then
     cp -f yum/docker.repo /etc/yum.repos.d
