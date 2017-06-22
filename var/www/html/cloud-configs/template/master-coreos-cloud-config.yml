@@ -319,7 +319,7 @@ write_files:
 
       set -g status-left-length 20
       set -g status-left '#[fg=colour243,bg=colour235] Session #S '
-      set -g status-right "#[fg=colour136,bg=colour233] net #(speed eth0) #[fg=colour241,bg=colour234] #(/usr/bin/ip route get 8.8.8.8 | awk 'NR==1{print $(NF)}') #[fg=colour244,bg=colour236] %H:%M:%S "
+      set -g status-right "#[fg=colour136,bg=colour233] net #(speed eth0) #[fg=colour241,bg=colour234] #(ip route get 8.8.8.8 | awk 'NR==1{print $(NF)}') #[fg=colour244,bg=colour236] %H:%M:%S "
       set -g status-justify left
 
       # window status
