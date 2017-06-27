@@ -1,9 +1,10 @@
 #!/bin/bash -ex
 
 K8SVersion=1.5.6
-CoreOSInstallationVersion=`curl https://alpha.release.core-os.net/amd64-usr/current/version.txt | sed -n 's/COREOS_VERSION=\(.*\)/\1/p'`
+CoreOSChnanel=stable
+CoreOSInstallationVersion=`curl https://${CoreOSChnanel}.release.core-os.net/amd64-usr/current/version.txt | sed -n 's/COREOS_VERSION=\(.*\)/\1/p'`
 CentOSInstallationVersion=7
-DeployCoreOS=no
+DeployCoreOS=yes
 DeployCentOS=yes
 IsChina=no
 iPXE_Server_IP=192.168.2.110
@@ -21,7 +22,7 @@ CheckDistribution() {
 
 CoreOSEnv() {
     # Download coreos_production_iso_image.iso to get vmlinuz and cpio.gz
-    wget -nc -P /root https://alpha.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
+    wget -nc -P /root https://${CoreOSChnanel}.release.core-os.net/amd64-usr/current/coreos_production_iso_image.iso
     tempDir=/mnt/coreos_production_iso_image
     mkdir -p $tempDir
     if ! grep -q $tempDir /proc/mounts; then
@@ -32,8 +33,8 @@ CoreOSEnv() {
     umount $tempDir
 
     # Download necessary files
-    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
-    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://alpha.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
+    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://${CoreOSChnanel}.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2
+    wget -nc -P /var/www/html/images/coreos/amd64-usr/${CoreOSInstallationVersion} https://${CoreOSChnanel}.release.core-os.net/amd64-usr/${CoreOSInstallationVersion}/coreos_production_image.bin.bz2.sig
 }
 
 CentOSEnv() {
@@ -127,6 +128,7 @@ initrd \${base-url}/images/pxeboot/initrd.img
 boot
 EOF
 
+    # Copy systemd necessary configurations
     cp -f systemd-conf/* /etc/systemd/system
     systemctl daemon-reload
     for i in nfs-server nginx dnsmasq-docker; do
@@ -203,7 +205,9 @@ if [ "$1" == "-s" ]; then
     exit 0
 fi
 
+# Check distribution
 distribution=`CheckDistribution`
+
 # Add docker repository and install docker
 if $distribution == "centos"; then
     cp -f yum/docker.repo /etc/yum.repos.d
@@ -290,8 +294,5 @@ do
     docker save $img > /var/www/html/images/docker/$tar_filename
     echo "$tar_filename" >> /var/www/html/images/docker-list
 done < $imageList
-
-# Download ActivePython
-#wget -c -P var/www/html/soft http://downloads.activestate.com/ActivePython/releases/2.7.13.2713/ActivePython-2.7.13.2713-linux-x86_64-glibc-2.3.6-401785.tar.gz
 
 UpdateConf
