@@ -210,10 +210,11 @@ distribution=`CheckDistribution`
 
 # Add docker repository and install docker
 if $distribution == "centos"; then
-    cp -f yum/docker.repo /etc/yum.repos.d
-    yum install -y docker-engine
-    systemctl start docker
-    systemctl enable docker
+    if ! rpm --quiet -q docker-engine; then
+        curl -fsSL https://get.docker.com/ | sh
+        systemctl start docker
+        systemctl enable docker
+    fi
 elif $distribution == "ubuntu"; then
     apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
     echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" >> /etc/apt/sources.list
