@@ -191,11 +191,12 @@ EOF
     cd $PrepareDir
 
     # Render inu-build-global-conf.py
-    Pattern=CoreOSInstallationVersion
+    Pattern1=CoreOSInstallationVersion
+    Pattern2=CentOSInstallationVersion
     if ! [ -d "${HOME}/bin" ]; then
         mkdir ${HOME}/bin
     fi
-    sed "s/${Pattern}=xxxx.x.x/${Pattern}=${CoreOSInstallationVersion}/g" root/bin/inu-build-global-conf.py > ${HOME}/bin/inu-build-global-conf.py
+    eval sed -e "s/${Pattern1}=xxxx.x.x/${Pattern1}=\$${Pattern1}/g" -e "s/${Pattern2}=oooo.o.o/${Pattern2}=\$${Pattern2}/g" root/bin/inu-build-global-conf.py > ${HOME}/bin/inu-build-global-conf.py
     chmod +x ${HOME}/bin/inu-build-global-conf.py
 }
 

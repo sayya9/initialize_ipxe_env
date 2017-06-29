@@ -43,7 +43,7 @@ def CreateInstllationConf(InstallationKind, InstallationHostname, OSPlatform):
     if OSPlatform == 'coreos':
         f.write('CoreOSInstallationVersion=xxxx.x.x' + '\n')
     elif OSPlatform == 'centos':
-        f.write('CentOSInstallationVersion=7' + '\n')
+        f.write('CentOSInstallationVersion=oooo.o.o' + '\n')
     f.write('ServerIPAddress=Your_' + InstallationKind + '_IP_Address' + '\n')
     f.write('MACAddress=Your_' + InstallationKind + '_MAC_Address' + '\n')
     f.write('KubernetesToken=cafe10.6ffc62b53a82753a'+ '\n')
