@@ -19,6 +19,8 @@ root/bin/inu-build-global-conf.py -k master -H node1.example.org -r
 
 Variables
 =======
+
+```
 K8SVersion=1.5.6
 CoreOSChnanel=stable
 CentOSInstallationVersion=7
@@ -28,3 +30,4 @@ IsChina=no
 iPXE_Server_IP=192.168.2.110
 GatewayIP=192.168.2.1
 ethX=br0
+```
