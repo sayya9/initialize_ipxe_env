@@ -1,5 +1,10 @@
 # python-build-k8s-env
 
+The purpose of the repository is to deploy k8s env for internal network.(e.g. banks)
+
+prepare_k8s_env.sh download all necessary packages, docker images, and binaries on OS. It chainload into iPXE to obtain the features of iPXE without the hassle of reflashing from PXE.
+
+
 INSTALL
 =======
 
@@ -15,6 +20,22 @@ Create PXE configs
 root/bin/inu-build-global-conf.py -k master -H node1.example.org -c
 root/bin/inu-build-global-conf.py -k master -H node1.example.org -e
 root/bin/inu-build-global-conf.py -k master -H node1.example.org -r
+```
+
+```
+InstallationKind=master, node, or base
+InstallationHostname=hostname
+CoreOSInstallationVersion=xxxx.x.x or CentOSInstallationVersion=oooo.o.o
+ServerIPAddress=Your_IP_Address
+MACAddress=Your_MAC_Address
+KubernetesToken=XXXX10.dfaereqfdafef
+K8SVersion=1.5.6
+RemoveDataLVM=no
+UseHostnameOverride=yes
+
+If you select node mode
+MasterHostname=Your_Kubernetes_master_Hostname
+MasterIPAddress=Your_Kubernetes_master_IP
 ```
 
 Variables
