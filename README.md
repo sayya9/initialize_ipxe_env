@@ -4,6 +4,8 @@ The purpose of the repository is to deploy k8s env for internal network.(e.g. ba
 
 prepare_k8s_env.sh download all necessary packages, docker images, and binaries on OS. It chainload into iPXE to obtain the features of iPXE without the hassle of reflashing from PXE.
 
+inu-build-global-conf.py create all iPXE and k8s configs.
+
 
 INSTALL
 =======
