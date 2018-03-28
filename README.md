@@ -1,4 +1,4 @@
-# python-build-k8s-env
+# shell-build-k8s-env
 
 The purpose of the repository is to deploy k8s env for internal network.(e.g. banks)
 
